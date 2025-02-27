@@ -1,6 +1,12 @@
 {
-    "title":"Blog Title",
-    "subTitle":"Blog description",
+    "title":"Master Blog",
+    "subTitle":"生当作人杰，死亦为鬼雄",
     "avatarUrl":"https://github.githubassets.com/favicons/favicon.svg",
-    "GMEEK_VERSION":"last"
+    "GMEEK_VERSION":"last",
+    "startSite":"02/27/2025",
+    "i18n":"CN",
+    "UTC":8,
+    "needComment":0,
+    "showPostSource":0,
+    "yearColorList":["#bc4c00", "#0969da", "#1f883d", "#A333D0"]
 }
