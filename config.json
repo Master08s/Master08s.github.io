@@ -4,6 +4,7 @@
     "avatarUrl":"https://github.githubassets.com/favicons/favicon.svg",
     "GMEEK_VERSION":"last",
     "startSite":"02/27/2025",
+    "singlePage":["about"],
     "i18n":"CN",
     "UTC":8,
     "needComment":0,
