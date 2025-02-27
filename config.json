@@ -10,7 +10,5 @@
     "showPostSource":0,
     "yearColorList":["#bc4c00", "#0969da", "#1f883d", "#A333D0"],
     "script":"<script src='https://blog.meekdai.com/Gmeek/plugins/articletoc.js'></script>",
-    "script":"<script src='https://blog.meekdai.com/Gmeek/plugins/lightbox.js'></script>",
-    
-    
+    "script":"<script src='https://blog.meekdai.com/Gmeek/plugins/lightbox.js'></script>"
 }
