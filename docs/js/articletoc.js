@@ -7,12 +7,18 @@ function loadResource(type, attributes) {
 }
 
 function createTOC() {
+    const contentContainer = document.querySelector('.markdown-body');
+    const headings = contentContainer.querySelectorAll('h1, h2, h3, h4, h5, h6');
+
+    // 如果没有子标题，直接返回，不创建目录和按钮
+    if (headings.length === 0) {
+        return;
+    }
+
     const tocElement = document.createElement('div');
     tocElement.className = 'toc';
-    const contentContainer = document.querySelector('.markdown-body');
     contentContainer.appendChild(tocElement);
 
-    const headings = contentContainer.querySelectorAll('h1, h2, h3, h4, h5, h6');
     headings.forEach(heading => {
         if (!heading.id) {
             heading.id = heading.textContent.trim().replace(/\s+/g, '-').toLowerCase();
@@ -38,6 +44,14 @@ function toggleTOC() {
 
 document.addEventListener("DOMContentLoaded", function() {
     createTOC();
+
+    // 如果没有子标题，直接返回，不加载样式和按钮
+    const contentContainer = document.querySelector('.markdown-body');
+    const headings = contentContainer.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    if (headings.length === 0) {
+        return;
+    }
+
     const css = `
         :root {
             --toc-bg: #fff;
