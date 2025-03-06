@@ -1,25 +1,26 @@
 (function() {
-    // 获取页面中所有的图片元素
-    const images = document.querySelectorAll('img');
-
-    // 获取当前页面的完整URL
-    const baseUrl = window.location.origin;
-
-    // 遍历所有图片元素
-    images.forEach(img => {
-        // 获取图片的src属性
-        let src = img.getAttribute('src');
-
-        // 判断是否是本地路径（不以http://或https://开头）
-        if (!src.startsWith('http://') && !src.startsWith('https://')) {
-            // 如果是本地路径，拼接完整URL
-            src = baseUrl + src;
-        }
-
-        // 添加https://images.weserv.nl/?url=原本图片url
-        src = 'https://images.weserv.nl/?url=' + encodeURIComponent(src);
-
-        // 更新图片的src属性
-        img.setAttribute('src', src);
+    // 等待DOM加载完成
+    document.addEventListener('DOMContentLoaded', function() {
+        const images = document.querySelectorAll('img');
+        const baseUrl = window.location.origin;
+        
+        images.forEach(img => {
+            let src = img.getAttribute('src');
+            if (!src) return; // 跳过无src的图片
+            
+            // 处理相对路径
+            if (!/^https?:\/\//i.test(src)) {
+                try {
+                    src = new URL(src, baseUrl).href;
+                } catch(e) {
+                    console.warn('Invalid image URL:', src);
+                    return; // 跳过无效URL
+                }
+            }
+            
+            // 生成代理URL并更新
+            img.src = 'https://images.weserv.nl/?url=' + 
+                     encodeURIComponent(src.replace(/^https?:\/\//, ''));
+        });
     });
 })();
