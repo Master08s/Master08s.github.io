@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>人生100件事</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/primer/15.2.0/build.css">
+	<style>
+		body {
+		    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+		    line-height: 1.6;
+		    padding: 20px;
+		    max-width: 800px;
+		    margin: 0 auto;
+		}
+		/* 强制所有元素使用默认光标 */
+		body * {
+		    cursor: default !important;
+		}
+		h1 {
+		    text-align: center;
+		    margin-bottom: 20px;
+		}
+		.list-item {
+		    display: flex;
+		    align-items: center;
+		    margin-bottom: 10px;
+		    padding: 10px;
+		    border: 1px solid #e1e4e8;
+		    border-radius: 6px;
+		    background-color: #f6f8fa;
+		}
+		.list-item:hover {
+		    background-color: #e1e4e8;
+		}
+		.list-item input[type="checkbox"] {
+		    margin-right: 10px;
+		    pointer-events: none; /* 禁用复选框点击 */
+		}
+		.list-item.completed label {
+		    text-decoration: line-through;
+		    color: #6a737d;
+		}
+		.list-item a {
+		    color: inherit;
+		    text-decoration: none;
+		}
+		.list-item a:hover {
+		    text-decoration: underline;
+		}
+		/* 禁用光标和文本选择 */
+		.list-item label {
+		    cursor: default;
+		    user-select: none;
+		}
+		/* 响应式设计 */
+		@media (max-width: 600px) {
+		    body {
+		        padding: 10px;
+		    }
+		    .list-item {
+		        padding: 8px;
+		        font-size: 14px;
+		    }
+		}
+	</style>
+</head>
+<body>
+	<h1>人生100件事</h1>
+	<div id="life-list"></div>
+	<script>
+		// 数据：人生100件事
+		const lifeList = [
+		    { text: "持续健身一年", completed: "0", link: "https://master08s.github.io/tag.html#自律日记" },
+		    { text: "学会两种新语言", completed: "0" },
+			{ text: "养一只宠物", completed: "1",link: "https://master08s.github.io/post/yang-yi-zhi-chong-wu---ka-fei.html"},
+			{ text: "写一封信给未来的自己", completed: "0",link:"https://master08s.github.io/post/gei-wei-lai-wo-de-xin.html"},
+		    { text: "去一个你从未去过的国家旅行", completed: "0", link: "https://example.com/travel" },
+		    { text: "尝试一项极限运动", completed: "0" },
+		    { text: "学会烹饪一道复杂的菜肴", completed: "0", link: "https://example.com/cooking" },
+		    { text: "学习一种乐器", completed: "0" },
+		    { text: "做一次志愿者", completed: "0" },
+		    
+		    // 继续添加更多事项...
+		];
+		
+		// 获取容器
+		const listContainer = document.getElementById("life-list");
+		
+		// 动态生成列表
+		lifeList.forEach((item, index) => {
+		    const listItem = document.createElement("div");
+		    listItem.className = "list-item";
+		
+		    const checkbox = document.createElement("input");
+		    checkbox.type = "checkbox";
+		    checkbox.id = `item${index + 1}`;
+		    checkbox.checked = item.completed === "1"; // 根据状态初始化复选框
+		    checkbox.disabled = true; // 禁用复选框
+		
+		    const label = document.createElement("label");
+		    // 移除 label 的 for 属性，避免与 input 关联
+		    if (item.link) {
+		        const link = document.createElement("a");
+		        link.href = item.link;
+		        link.target = "_blank"; // 在新标签页打开
+		        link.textContent = `${index + 1}. ${item.text}`;
+		        label.appendChild(link);
+		    } else {
+		        label.textContent = `${index + 1}. ${item.text}`;
+		    }
+		
+		    // 如果初始状态是已完成，添加 completed 类
+		    if (item.completed === "1") {
+		        listItem.classList.add("completed");
+		    }
+		
+		    listItem.appendChild(checkbox);
+		    listItem.appendChild(label);
+		    listContainer.appendChild(listItem);
+		});
+	</script>
+</body>
+</html>
