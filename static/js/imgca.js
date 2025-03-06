@@ -16,7 +16,7 @@
             src = baseUrl + src;
         }
 
-        // 添加https://images.weserv.nl/?url=前缀
+        // 添加https://images.weserv.nl/?url=原本图片url
         src = 'https://images.weserv.nl/?url=' + encodeURIComponent(src);
 
         // 更新图片的src属性
