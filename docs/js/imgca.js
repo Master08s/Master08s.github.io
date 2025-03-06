@@ -1,6 +1,6 @@
 (function() {
     // 等待DOM加载完成
-    document.addEventListener('DOMContentLoaded', function() {
+    // document.addEventListener('DOMContentLoaded', function() {
         const images = document.querySelectorAll('img');
         const baseUrl = document.querySelector('base')?.href || window.location.origin;
         
