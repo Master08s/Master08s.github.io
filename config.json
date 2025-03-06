@@ -13,6 +13,5 @@
     "needComment":0,
     "showPostSource":0,
     "yearColorList":["#bc4c00", "#0969da", "#1f883d", "#A333D0"],
-    "head":"<script src='https://master08s.github.io/js/imgca.js'></script>",
-    "script":"<script src='https://master08s.github.io/js/articletoc.js'></script><script src='https://master08s.github.io/js/lightbox.js'></script>",
+    "script":"<script src='https://master08s.github.io/js/articletoc.js'></script><script src='https://master08s.github.io/js/lightbox.js'></script><script src='https://master08s.github.io/js/imgca.js'></script>",
 }
