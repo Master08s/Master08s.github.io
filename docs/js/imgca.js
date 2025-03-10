@@ -1,7 +1,7 @@
 /**
- * 通用图片代理脚本 - 在任何网页上自动将图片转为images.weserv.nl代理
- * 增强版本：兼容所有网站、浏览器，并具有自适应功能
- * 版本：2.1.0
+ * 通用图片代理脚本 - 全功能增强版
+ * 在任何网页上自动将图片转为images.weserv.nl代理
+ * 版本：4.0.0 - 全功能增强版（音乐播放器完美适配）
  */
 (function() {
     // 配置项
@@ -11,11 +11,14 @@
         processDynamicImages: true,    // 是否处理动态加载的图片
         processXHRFetch: true,         // 是否拦截XHR和Fetch请求
         preventDuplicateProcessing: true, // 防止重复处理同一URL
-        monitorFrequency: 800,         // 监控频率(毫秒)
+        monitorFrequency: 600,         // 常规监控间隔(毫秒)
+        musicPlayerMonitorFrequency: 300, // 音乐播放器监控间隔(毫秒)
         debug: false,                  // 是否启用调试日志
+        waitForDomContentLoaded: true, // 是否等待DOM加载完成再初始化部分功能
+        enhanceMusicPlayers: true,     // 是否增强对音乐播放器的支持
+        directPrototypesIntercept: true, // 是否直接拦截原型方法
         excludeDomains: [],            // 不处理的域名列表
-        excludeSelectors: [],          // 不处理的元素选择器列表
-        waitForDomContentLoaded: true  // 是否等待DOM加载完成再初始化
+        excludeSelectors: []           // 不处理的元素选择器列表
     };
     
     // 创建一个唯一的命名空间，避免与页面上其他脚本冲突
@@ -27,7 +30,7 @@
         return;
     }
     
-    // 标记为已初始化 - 早期标记避免重复加载
+    // 标记为已初始化
     window._imageProxyHandler.initialized = true;
     
     // 存储已处理过的URL，防止重复处理
@@ -83,45 +86,11 @@
     
     // 初始化函数
     function initialize() {
-        debugLog('初始化图片代理系统');
+        debugLog('初始化图片代理系统 - 全功能增强版');
         
         try {
-            // 如果DOM尚未准备好并且配置要求等待DOM加载，则推迟初始化
-            if (!isDocumentReady() && config.waitForDomContentLoaded) {
-                debugLog('DOM尚未加载完成，等待DOMContentLoaded事件');
-                document.addEventListener('DOMContentLoaded', () => {
-                    debugLog('DOM已加载，开始初始化');
-                    startInitialization();
-                });
-                // 设置一个备用的超时初始化，以防DOMContentLoaded已错过
-                setTimeout(() => {
-                    if (!window._imageProxyHandler.initialized) {
-                        debugLog('DOM加载超时，尝试强制初始化');
-                        startInitialization();
-                    }
-                }, 2000);
-                return;
-            }
-            
-            // 如果DOM已就绪或不需要等待，立即初始化
-            startInitialization();
-        } catch (error) {
-            console.error('❌ 图片代理转换初始化失败:', error);
-        }
-    }
-    
-    // 实际开始初始化流程
-    function startInitialization() {
-        try {
-            // 设置一个初始化完成的标志
-            window._imageProxyHandler.startedInitialization = true;
-            
-            // 立即执行处理现有图片
-            if (isDocumentReady()) {
-                processExistingImages();
-            } else {
-                debugLog('文档尚未准备好，跳过处理现有图片');
-            }
+            // DOM无关的拦截可以立即执行
+            setupPrototypesIntercept();
             
             // 拦截Image对象 - 这不依赖于DOM
             safeExecute(interceptImageElement);
@@ -133,6 +102,12 @@
             
             // 等待DOM准备就绪后进行的操作
             const initDomDependentFeatures = () => {
+                // 标记为DOM功能已初始化
+                window._imageProxyHandler.domFeaturesInitialized = true;
+                
+                // 立即执行处理现有图片
+                safeExecute(processExistingImages);
+                
                 // 如果启用了CSS背景处理，则处理背景图片
                 if (config.processCssBackgrounds) {
                     setTimeout(() => safeExecute(interceptBackgroundImages), 500);
@@ -150,7 +125,7 @@
                     safeExecute(setupImageObserver);
                 }
                 
-                // 处理特定类型网站的图片加载
+                // 设置网站特定处理程序
                 setupSiteSpecificHandlers();
                 
                 // 设置定期扫描
@@ -159,26 +134,250 @@
                 console.log('✅ 通用图片代理转换已启用：所有图片将通过 images.weserv.nl 加载');
             };
             
-            // 检查DOM是否已经准备好
-            if (isDocumentReady()) {
-                initDomDependentFeatures();
-            } else {
-                // 如果DOM尚未就绪，添加事件监听器
-                document.addEventListener('DOMContentLoaded', initDomDependentFeatures);
+            // 如果DOM尚未准备好并且配置要求等待DOM加载，则推迟初始化DOM相关功能
+            if (!isDocumentReady() && config.waitForDomContentLoaded) {
+                debugLog('DOM尚未加载完成，等待DOMContentLoaded事件');
                 
-                // 设置一个备用超时，以防DOMContentLoaded已错过
+                // 添加DOMContentLoaded事件监听器
+                document.addEventListener('DOMContentLoaded', () => {
+                    debugLog('DOM已加载，开始初始化DOM依赖功能');
+                    initDomDependentFeatures();
+                });
+                
+                // 设置一个备用的超时初始化，以防DOMContentLoaded已错过
                 setTimeout(() => {
-                    if (isDocumentReady() && !window._imageProxyHandler.domFeaturesInitialized) {
-                        debugLog('DOMContentLoaded可能已错过，通过超时回调初始化');
+                    if (!window._imageProxyHandler.domFeaturesInitialized) {
+                        debugLog('DOM加载超时，尝试强制初始化DOM依赖功能');
                         initDomDependentFeatures();
                     }
                 }, 2000);
+            } else {
+                // 如果DOM已就绪或不需要等待，立即初始化DOM依赖功能
+                initDomDependentFeatures();
             }
-            
-            // 标记DOM依赖特性已初始化
-            window._imageProxyHandler.domFeaturesInitialized = true;
         } catch (error) {
             console.error('❌ 图片代理转换初始化失败:', error);
+        }
+    }
+    
+    // 设置原型拦截 - 在最早期拦截关键方法和属性
+    function setupPrototypesIntercept() {
+        if (!config.directPrototypesIntercept) return;
+        
+        debugLog('设置原型拦截');
+        
+        try {
+            // 拦截HTMLImageElement.prototype.src属性
+            if (HTMLImageElement && HTMLImageElement.prototype) {
+                const originalSrcDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+                if (originalSrcDescriptor && originalSrcDescriptor.configurable) {
+                    Object.defineProperty(HTMLImageElement.prototype, 'src', {
+                        get: originalSrcDescriptor.get,
+                        set: function(url) {
+                            if (url && typeof url === 'string' && 
+                                !url.includes('images.weserv.nl') && 
+                                !url.startsWith('data:') && 
+                                !url.startsWith('blob:')) {
+                                
+                                // 保存原始URL
+                                try {
+                                    this.setAttribute('data-original-src', url);
+                                } catch (e) {}
+                                
+                                // 设置代理URL
+                                const proxyUrl = getProxyUrl(url);
+                                processedUrls.add(url);
+                                return originalSrcDescriptor.set.call(this, proxyUrl);
+                            }
+                            return originalSrcDescriptor.set.call(this, url);
+                        },
+                        configurable: true
+                    });
+                }
+                
+                // 同样拦截srcset属性
+                if (Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'srcset')) {
+                    const originalSrcsetDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'srcset');
+                    if (originalSrcsetDescriptor && originalSrcsetDescriptor.configurable) {
+                        Object.defineProperty(HTMLImageElement.prototype, 'srcset', {
+                            get: originalSrcsetDescriptor.get,
+                            set: function(srcset) {
+                                if (srcset && typeof srcset === 'string' && !srcset.includes('images.weserv.nl')) {
+                                    // 保存原始srcset
+                                    try {
+                                        this.setAttribute('data-original-srcset', srcset);
+                                    } catch (e) {}
+                                    
+                                    // 处理srcset字符串
+                                    const newSrcset = processSrcset(srcset);
+                                    return originalSrcsetDescriptor.set.call(this, newSrcset);
+                                }
+                                return originalSrcsetDescriptor.set.call(this, srcset);
+                            },
+                            configurable: true
+                        });
+                    }
+                }
+            }
+            
+            // 拦截HTMLMediaElement.prototype.poster属性（用于video和audio元素）
+            if (HTMLMediaElement && HTMLMediaElement.prototype) {
+                const originalPosterDescriptor = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'poster');
+                if (originalPosterDescriptor && originalPosterDescriptor.configurable) {
+                    Object.defineProperty(HTMLMediaElement.prototype, 'poster', {
+                        get: originalPosterDescriptor.get,
+                        set: function(url) {
+                            if (url && typeof url === 'string' && 
+                                !url.includes('images.weserv.nl') && 
+                                !url.startsWith('data:') && 
+                                !url.startsWith('blob:')) {
+                                
+                                // 保存原始URL
+                                try {
+                                    this.setAttribute('data-original-poster', url);
+                                } catch (e) {}
+                                
+                                // 设置代理URL
+                                const proxyUrl = getProxyUrl(url);
+                                processedUrls.add(url);
+                                return originalPosterDescriptor.set.call(this, proxyUrl);
+                            }
+                            return originalPosterDescriptor.set.call(this, url);
+                        },
+                        configurable: true
+                    });
+                }
+            }
+            
+            // 拦截appendChild和insertBefore方法
+            if (Node && Node.prototype) {
+                // 拦截appendChild
+                const originalAppendChild = Node.prototype.appendChild;
+                Node.prototype.appendChild = function(node) {
+                    if (node && node.nodeName === 'IMG') {
+                        processImageElement(node);
+                    }
+                    return originalAppendChild.call(this, node);
+                };
+                
+                // 拦截insertBefore
+                const originalInsertBefore = Node.prototype.insertBefore;
+                Node.prototype.insertBefore = function(node, reference) {
+                    if (node && node.nodeName === 'IMG') {
+                        processImageElement(node);
+                    }
+                    return originalInsertBefore.call(this, node, reference);
+                };
+            }
+            
+            // 拦截innerHTML和outerHTML属性
+            if (Element && Element.prototype) {
+                // 拦截innerHTML
+                const originalInnerHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+                if (originalInnerHTMLDescriptor && originalInnerHTMLDescriptor.configurable) {
+                    Object.defineProperty(Element.prototype, 'innerHTML', {
+                        get: originalInnerHTMLDescriptor.get,
+                        set: function(html) {
+                            // 设置HTML内容
+                            const result = originalInnerHTMLDescriptor.set.call(this, html);
+                            // 处理新添加的图片
+                            setTimeout(() => {
+                                processImagesInElement(this);
+                            }, 0);
+                            return result;
+                        },
+                        configurable: true
+                    });
+                }
+                
+                // 拦截outerHTML
+                const originalOuterHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, 'outerHTML');
+                if (originalOuterHTMLDescriptor && originalOuterHTMLDescriptor.configurable) {
+                    Object.defineProperty(Element.prototype, 'outerHTML', {
+                        get: originalOuterHTMLDescriptor.get,
+                        set: function(html) {
+                            // 保存父元素的引用
+                            const parent = this.parentNode;
+                            // 设置HTML内容
+                            const result = originalOuterHTMLDescriptor.set.call(this, html);
+                            // 处理新添加的图片
+                            if (parent) {
+                                setTimeout(() => {
+                                    processImagesInElement(parent);
+                                }, 0);
+                            }
+                            return result;
+                        },
+                        configurable: true
+                    });
+                }
+            }
+        } catch (error) {
+            debugLog('设置原型拦截时出错:', error);
+        }
+    }
+    
+    // 处理元素内的所有图片
+    function processImagesInElement(element) {
+        if (!safeCheckElement(element)) return;
+        
+        try {
+            const images = element.querySelectorAll('img');
+            let count = 0;
+            
+            images.forEach(img => {
+                if (processImageElement(img)) {
+                    count++;
+                }
+            });
+            
+            // 处理视频/音频元素的poster属性
+            const mediaElements = element.querySelectorAll('video, audio');
+            mediaElements.forEach(media => {
+                if (media.hasAttribute('poster')) {
+                    const posterUrl = media.getAttribute('poster');
+                    if (posterUrl && !posterUrl.includes('images.weserv.nl') && !posterUrl.startsWith('data:') && !posterUrl.startsWith('blob:')) {
+                        if (config.preventDuplicateProcessing && processedUrls.has(posterUrl)) {
+                            return;
+                        }
+                        
+                        media.setAttribute('data-original-poster', posterUrl);
+                        media.setAttribute('poster', getProxyUrl(posterUrl));
+                        processedUrls.add(posterUrl);
+                        count++;
+                    }
+                }
+            });
+            
+            if (count > 0) {
+                debugLog(`处理了${count}个元素内图片`);
+            }
+            
+            return count;
+        } catch (error) {
+            debugLog('处理元素内图片时出错:', error);
+            return 0;
+        }
+    }
+    
+    // 处理srcset字符串
+    function processSrcset(srcset) {
+        try {
+            // 解析srcset字符串
+            const srcsetParts = srcset.split(',').map(part => part.trim());
+            const newSrcsetParts = srcsetParts.map(part => {
+                const [url, descriptor] = part.split(/\s+/);
+                if (url && !url.includes('images.weserv.nl') && !url.startsWith('data:') && !url.startsWith('blob:')) {
+                    return `${getProxyUrl(url)} ${descriptor || ''}`.trim();
+                }
+                return part;
+            });
+            
+            // 重新组合srcset字符串
+            return newSrcsetParts.join(', ');
+        } catch (error) {
+            debugLog('处理srcset时出错:', error);
+            return srcset;
         }
     }
     
@@ -191,20 +390,26 @@
         
         debugLog('设置网站特定处理程序');
         
-        // 音乐播放网站
-        safeExecute(setupMusicPlayerObserver);
-        
-        // 图片库/相册网站
-        safeExecute(setupGalleryObserver);
-        
-        // 社交媒体网站
-        safeExecute(setupSocialMediaObserver);
-        
-        // 电子商务网站
-        safeExecute(setupEcommerceObserver);
-        
-        // 视频网站
-        safeExecute(setupVideoSiteObserver);
+        try {
+            // 音乐播放网站
+            if (config.enhanceMusicPlayers) {
+                setupMusicPlayerObserver();
+            }
+            
+            // 图片库/相册网站
+            setupGalleryObserver();
+            
+            // 社交媒体网站
+            setupSocialMediaObserver();
+            
+            // 电子商务网站
+            setupEcommerceObserver();
+            
+            // 视频网站
+            setupVideoSiteObserver();
+        } catch (error) {
+            debugLog('设置网站特定处理程序时出错:', error);
+        }
     }
     
     // 设置定期扫描
@@ -216,48 +421,52 @@
         
         debugLog('设置定期扫描');
         
-        // 使用随机间隔，避免被检测为机器人
-        const randomInterval = () => 800 + Math.random() * 400;
-        
-        // 定期扫描图片
-        const imgScanInterval = setInterval(() => {
-            if (isDocumentReady()) {
-                safeExecute(processExistingImages);
-            }
-        }, randomInterval());
-        
-        // 定期扫描懒加载图片
-        const lazyScanInterval = setInterval(() => {
-            if (isDocumentReady()) {
-                safeExecute(processLazyLoadImages);
-            }
-        }, randomInterval() * 1.5);
-        
-        // 定期扫描iframe内的图片
-        const iframeScanInterval = setInterval(() => {
-            if (isDocumentReady()) {
-                safeExecute(processIframeImages);
-            }
-        }, randomInterval() * 2);
-        
-        // 监听滚动事件，处理可见区域内的新图片，使用防抖减少频率
-        const debouncedScrollHandler = debounce(() => {
-            if (isDocumentReady()) {
-                safeExecute(processVisibleImages);
-            }
-        }, 200);
-        
-        // 安全地添加事件监听器
         try {
-            window.addEventListener('scroll', debouncedScrollHandler, { passive: true });
-            window.addEventListener('resize', debouncedScrollHandler, { passive: true });
-        } catch (e) {
-            debugLog('添加滚动/调整大小事件监听器时出错:', e);
+            // 使用随机间隔，避免被检测为机器人
+            const randomInterval = () => config.monitorFrequency + Math.random() * 400;
+            
+            // 定期扫描图片
+            const imgScanInterval = setInterval(() => {
+                if (isDocumentReady()) {
+                    safeExecute(processExistingImages);
+                }
+            }, randomInterval());
+            
+            // 定期扫描懒加载图片
+            const lazyScanInterval = setInterval(() => {
+                if (isDocumentReady()) {
+                    safeExecute(processLazyLoadImages);
+                }
+            }, randomInterval() * 1.5);
+            
+            // 定期扫描iframe内的图片
+            const iframeScanInterval = setInterval(() => {
+                if (isDocumentReady()) {
+                    safeExecute(processIframeImages);
+                }
+            }, randomInterval() * 2);
+            
+            // 监听滚动事件，处理可见区域内的新图片，使用防抖减少频率
+            const debouncedScrollHandler = debounce(() => {
+                if (isDocumentReady()) {
+                    safeExecute(processVisibleImages);
+                }
+            }, 200);
+            
+            // 安全地添加事件监听器
+            try {
+                window.addEventListener('scroll', debouncedScrollHandler, { passive: true });
+                window.addEventListener('resize', debouncedScrollHandler, { passive: true });
+            } catch (e) {
+                debugLog('添加滚动/调整大小事件监听器时出错:', e);
+            }
+            
+            // 存储间隔以便清理
+            window._imageProxyHandler.timers = window._imageProxyHandler.timers || [];
+            window._imageProxyHandler.timers.push(imgScanInterval, lazyScanInterval, iframeScanInterval);
+        } catch (error) {
+            debugLog('设置定期扫描时出错:', error);
         }
-        
-        // 存储间隔以便清理
-        window._imageProxyHandler.timers = window._imageProxyHandler.timers || [];
-        window._imageProxyHandler.timers.push(imgScanInterval, lazyScanInterval, iframeScanInterval);
     }
     
     // 检查元素是否应被跳过处理
@@ -292,13 +501,32 @@
             let count = 0;
             
             images.forEach(img => {
-                if (!shouldSkipElement(img) && processImageSrc(img)) {
+                if (!shouldSkipElement(img) && processImageElement(img)) {
                     count++;
                 }
             });
             
+            // 处理视频/音频元素的poster属性
+            const mediaElements = document.querySelectorAll('video, audio');
+            mediaElements.forEach(media => {
+                if (!shouldSkipElement(media) && media.hasAttribute('poster')) {
+                    const posterUrl = media.getAttribute('poster');
+                    if (posterUrl && !posterUrl.includes('images.weserv.nl') && !posterUrl.startsWith('data:') && !posterUrl.startsWith('blob:')) {
+                        // 避免重复处理
+                        if (config.preventDuplicateProcessing && processedUrls.has(posterUrl)) {
+                            return;
+                        }
+                        
+                        media.setAttribute('data-original-poster', posterUrl);
+                        media.setAttribute('poster', getProxyUrl(posterUrl));
+                        processedUrls.add(posterUrl);
+                        count++;
+                    }
+                }
+            });
+            
             if (count > 0) {
-                debugLog(`处理了${count}个现有图片`);
+                debugLog(`处理了${count}个现有图片和媒体元素`);
             }
             
             return count;
@@ -325,7 +553,7 @@
                     const rect = img.getBoundingClientRect();
                     // 图片在视口内或接近视口
                     if (rect.top < windowHeight + 300 && rect.bottom > -300) {
-                        if (!shouldSkipElement(img) && processImageSrc(img)) {
+                        if (!shouldSkipElement(img) && processImageElement(img)) {
                             img.setAttribute('data-proxy-processed', 'true');
                             count++;
                         }
@@ -344,120 +572,6 @@
             debugLog('处理可见图片时出错:', e);
             return 0;
         }
-    }
-    
-    // 处理图片src属性，返回是否进行了处理
-    function processImageSrc(img) {
-        if (!safeCheckElement(img)) return false;
-        
-        let processed = false;
-        
-        try {
-            // 如果图片有src但没有data-original属性，表示尚未处理过
-            if (img.src && !img.hasAttribute('data-original')) {
-                const originalSrc = img.getAttribute('src');
-                
-                // 如果已经是代理URL或者是data URL或SVG，则跳过
-                if (!originalSrc || 
-                    originalSrc.includes('images.weserv.nl') || 
-                    originalSrc.startsWith('data:') ||
-                    originalSrc.startsWith('blob:') ||
-                    originalSrc.includes('<svg')) {
-                    return false;
-                }
-                
-                // 避免重复处理
-                if (config.preventDuplicateProcessing && processedUrls.has(originalSrc)) {
-                    return false;
-                }
-                
-                // 保存原始URL
-                img.setAttribute('data-original', originalSrc);
-                
-                // 设置代理URL
-                const proxyUrl = getProxyUrl(originalSrc);
-                img.setAttribute('src', proxyUrl);
-                processedUrls.add(originalSrc);
-                processed = true;
-                debugLog('处理图片src:', originalSrc.substring(0, 50) + (originalSrc.length > 50 ? '...' : ''));
-            }
-            
-            // 处理懒加载属性 (如data-src, data-lazy-src等)
-            const lazyAttributes = [
-                'data-src', 'data-lazy-src', 'data-original', 'lazy-src', 
-                'data-cover', 'data-thumbnail', 'data-bg', 'data-poster',
-                'data-image', 'data-srcset', 'data-defer-src', 'data-origin',
-                'data-backdrop', 'data-url', 'data-high-res-src', 'data-low-res-src',
-                'data-raw-src', 'data-img', 'data-src-retina'
-            ];
-            
-            lazyAttributes.forEach(attr => {
-                try {
-                    if (img.hasAttribute(attr) && !img.hasAttribute(`data-original-${attr}`)) {
-                        const originalValue = img.getAttribute(attr);
-                        
-                        // 跳过已代理或data URL或空值
-                        if (!originalValue || 
-                            originalValue.includes('images.weserv.nl') || 
-                            originalValue.startsWith('data:') ||
-                            originalValue.startsWith('blob:')) {
-                            return;
-                        }
-                        
-                        // 避免重复处理
-                        if (config.preventDuplicateProcessing && processedUrls.has(originalValue)) {
-                            return;
-                        }
-                        
-                        // 保存原始值
-                        img.setAttribute(`data-original-${attr}`, originalValue);
-                        
-                        // 设置代理URL
-                        const proxyUrl = getProxyUrl(originalValue);
-                        img.setAttribute(attr, proxyUrl);
-                        processedUrls.add(originalValue);
-                        processed = true;
-                        debugLog(`处理图片${attr}:`, originalValue.substring(0, 50) + (originalValue.length > 50 ? '...' : ''));
-                    }
-                } catch (e) {
-                    debugLog(`处理懒加载属性 ${attr} 时出错:`, e);
-                }
-            });
-            
-            // 处理srcset属性
-            try {
-                if (img.hasAttribute('srcset') && !img.hasAttribute('data-original-srcset')) {
-                    const originalSrcset = img.getAttribute('srcset');
-                    
-                    if (originalSrcset && !originalSrcset.includes('images.weserv.nl')) {
-                        // 解析并处理srcset字符串
-                        const srcsetParts = originalSrcset.split(',').map(part => part.trim());
-                        const newSrcsetParts = srcsetParts.map(part => {
-                            const [url, descriptor] = part.split(/\s+/);
-                            if (url && !url.includes('images.weserv.nl') && !url.startsWith('data:') && !url.startsWith('blob:')) {
-                                return `${getProxyUrl(url)} ${descriptor || ''}`.trim();
-                            }
-                            return part;
-                        });
-                        
-                        // 保存原始值
-                        img.setAttribute('data-original-srcset', originalSrcset);
-                        
-                        // 设置新的srcset
-                        const newSrcset = newSrcsetParts.join(', ');
-                        img.setAttribute('srcset', newSrcset);
-                        processed = true;
-                        debugLog('处理图片srcset');
-                    }
-                }
-            } catch (e) {
-                debugLog('处理srcset属性时出错:', e);
-            }
-        } catch (error) {
-            debugLog('处理图片时出错:', error);
-        }
-        
-        return processed;
     }
     
     // 处理懒加载图片
@@ -491,7 +605,7 @@
             lazyImages.forEach(img => {
                 try {
                     if (img.tagName === 'IMG' && !shouldSkipElement(img)) {
-                        if (processImageSrc(img)) {
+                        if (processImageElement(img)) {
                             count++;
                         }
                     } else if (img.style && img.style.backgroundImage && !shouldSkipElement(img)) {
@@ -533,7 +647,7 @@
                         const iframeImages = iframe.contentDocument.querySelectorAll('img');
                         iframeImages.forEach(img => {
                             try {
-                                if (!shouldSkipElement(img) && processImageSrc(img)) {
+                                if (!shouldSkipElement(img) && processImageElement(img)) {
                                     count++;
                                 }
                             } catch (e) {
@@ -575,6 +689,94 @@
         }
     }
     
+    // 处理图片元素
+    function processImageElement(img) {
+        if (!safeCheckElement(img)) return false;
+        
+        let processed = false;
+        
+        try {
+            // 处理src属性
+            if (img.src && !img.src.includes('images.weserv.nl') && !img.src.startsWith('data:') && !img.src.startsWith('blob:')) {
+                const originalSrc = img.src;
+                
+                // 避免重复处理
+                if (config.preventDuplicateProcessing && processedUrls.has(originalSrc)) {
+                    return false;
+                }
+                
+                // 保存原始URL
+                try {
+                    img.setAttribute('data-original-src', originalSrc);
+                } catch (e) {}
+                
+                // 设置代理URL
+                img.src = getProxyUrl(originalSrc);
+                processedUrls.add(originalSrc);
+                processed = true;
+                debugLog('处理图片src:', originalSrc.substring(0, 50) + (originalSrc.length > 50 ? '...' : ''));
+            }
+            
+            // 处理srcset属性
+            if (img.hasAttribute('srcset') && !img.getAttribute('srcset').includes('images.weserv.nl')) {
+                const originalSrcset = img.getAttribute('srcset');
+                
+                // 避免重复处理
+                if (config.preventDuplicateProcessing && processedUrls.has('srcset:' + originalSrcset)) {
+                    return processed;
+                }
+                
+                try {
+                    img.setAttribute('data-original-srcset', originalSrcset);
+                } catch (e) {}
+                
+                const newSrcset = processSrcset(originalSrcset);
+                img.setAttribute('srcset', newSrcset);
+                processedUrls.add('srcset:' + originalSrcset);
+                processed = true;
+                debugLog('处理图片srcset');
+            }
+            
+            // 处理懒加载属性
+            const lazyAttributes = [
+                'data-src', 'data-lazy-src', 'data-original', 'lazy-src', 
+                'data-cover', 'data-thumbnail', 'data-image', 'data-bg',
+                'data-srcset', 'data-defer-src', 'data-origin',
+                'data-backdrop', 'data-url', 'data-high-res-src', 'data-low-res-src',
+                'data-raw-src', 'data-img', 'data-src-retina'
+            ];
+            
+            lazyAttributes.forEach(attr => {
+                try {
+                    if (img.hasAttribute(attr) && !img.hasAttribute(`data-original-${attr}`)) {
+                        const originalValue = img.getAttribute(attr);
+                        if (originalValue && !originalValue.includes('images.weserv.nl') && !originalValue.startsWith('data:') && !originalValue.startsWith('blob:')) {
+                            // 避免重复处理
+                            if (config.preventDuplicateProcessing && processedUrls.has(attr + ':' + originalValue)) {
+                                return;
+                            }
+                            
+                            try {
+                                img.setAttribute(`data-original-${attr}`, originalValue);
+                            } catch (e) {}
+                            
+                            img.setAttribute(attr, getProxyUrl(originalValue));
+                            processedUrls.add(attr + ':' + originalValue);
+                            processed = true;
+                            debugLog(`处理图片${attr}:`, originalValue.substring(0, 50) + (originalValue.length > 50 ? '...' : ''));
+                        }
+                    }
+                } catch (e) {
+                    debugLog(`处理懒加载属性 ${attr} 时出错:`, e);
+                }
+            });
+        } catch (error) {
+            debugLog('处理图片元素时出错:', error);
+        }
+        
+        return processed;
+    }
+    
     // 拦截Image对象的创建
     function interceptImageElement() {
         debugLog('拦截Image对象');
@@ -592,73 +794,45 @@
                 try {
                     const originalDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
                     
-                    Object.defineProperty(img, 'src', {
-                        get: originalDescriptor.get,
-                        set: function(url) {
-                            // 如果不是代理URL且不是data URL，则转换为代理URL
-                            if (url && typeof url === 'string' && 
-                                !url.includes('images.weserv.nl') && 
-                                !url.startsWith('data:') && 
-                                !url.startsWith('blob:')) {
-                                
-                                // 避免重复处理
-                                if (config.preventDuplicateProcessing && processedUrls.has(url)) {
-                                    originalDescriptor.set.call(this, url);
-                                    return;
-                                }
-                                
-                                // 保存原始URL
-                                this.setAttribute('data-original', url);
-                                
-                                // 设置代理URL
-                                const proxyUrl = getProxyUrl(url);
-                                debugLog('拦截到新Image.src:', url.substring(0, 50) + (url.length > 50 ? '...' : ''));
-                                processedUrls.add(url);
-                                originalDescriptor.set.call(this, proxyUrl);
-                            } else {
-                                originalDescriptor.set.call(this, url);
-                            }
-                        },
-                        configurable: true
-                    });
-                    
-                    // 同样拦截srcset
-                    if (Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'srcset')) {
-                        try {
-                            const originalSrcsetDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'srcset');
-                            
-                            Object.defineProperty(img, 'srcset', {
-                                get: originalSrcsetDescriptor.get,
-                                set: function(srcset) {
-                                    if (srcset && typeof srcset === 'string' && !srcset.includes('images.weserv.nl')) {
-                                        // 保存原始srcset
-                                        this.setAttribute('data-original-srcset', srcset);
+                    if (originalDescriptor && originalDescriptor.configurable) {
+                        // 由于HTMLImageElement.prototype.src已经被拦截，这里不需要再次拦截
+                        // 但为了兼容性，我们仍然保留此代码，以防原型拦截失败
+                        if (!config.directPrototypesIntercept) {
+                            Object.defineProperty(img, 'src', {
+                                get: originalDescriptor.get,
+                                set: function(url) {
+                                    // 如果不是代理URL且不是data URL，则转换为代理URL
+                                    if (url && typeof url === 'string' && 
+                                        !url.includes('images.weserv.nl') && 
+                                        !url.startsWith('data:') && 
+                                        !url.startsWith('blob:')) {
                                         
-                                        // 解析并处理srcset字符串
-                                        const srcsetParts = srcset.split(',').map(part => part.trim());
-                                        const newSrcsetParts = srcsetParts.map(part => {
-                                            const [url, descriptor] = part.split(/\s+/);
-                                            if (url && !url.includes('images.weserv.nl') && !url.startsWith('data:') && !url.startsWith('blob:')) {
-                                                return `${getProxyUrl(url)} ${descriptor || ''}`.trim();
-                                            }
-                                            return part;
-                                        });
+                                        // 避免重复处理
+                                        if (config.preventDuplicateProcessing && processedUrls.has(url)) {
+                                            originalDescriptor.set.call(this, url);
+                                            return;
+                                        }
                                         
-                                        // 设置新的srcset
-                                        const newSrcset = newSrcsetParts.join(', ');
-                                        originalSrcsetDescriptor.set.call(this, newSrcset);
+                                        // 保存原始URL
+                                        try {
+                                            this.setAttribute('data-original-src', url);
+                                        } catch (e) {}
+                                        
+                                        // 设置代理URL
+                                        const proxyUrl = getProxyUrl(url);
+                                        debugLog('拦截到新Image.src:', url.substring(0, 50) + (url.length > 50 ? '...' : ''));
+                                        processedUrls.add(url);
+                                        originalDescriptor.set.call(this, proxyUrl);
                                     } else {
-                                        originalSrcsetDescriptor.set.call(this, srcset);
+                                        originalDescriptor.set.call(this, url);
                                     }
                                 },
                                 configurable: true
                             });
-                        } catch (e) {
-                            debugLog('拦截srcset属性时出错:', e);
                         }
                     }
                 } catch (e) {
-                    debugLog('设置Image属性拦截时出错:', e);
+                    debugLog('设置Image实例src拦截时出错:', e);
                 }
                 
                 return img;
@@ -937,7 +1111,7 @@
                 const originalUrl = matches[1];
                 
                 // 避免重复处理
-                if (config.preventDuplicateProcessing && processedUrls.has(originalUrl)) {
+                if (config.preventDuplicateProcessing && processedUrls.has('bg:' + originalUrl)) {
                     return false;
                 }
                 
@@ -947,7 +1121,7 @@
                     // 只有在URL确实改变时才修改
                     if (originalUrl !== proxyUrl) {
                         el.style.backgroundImage = `url("${proxyUrl}")`;
-                        processedUrls.add(originalUrl);
+                        processedUrls.add('bg:' + originalUrl);
                         debugLog('处理元素背景图片:', originalUrl.substring(0, 50) + (originalUrl.length > 50 ? '...' : ''));
                         return true;
                     }
@@ -976,23 +1150,69 @@
             const bodyText = document.body ? document.body.textContent || '' : '';
             isMusicSite = /(music|song|audio|player|spotify|pandora|deezer|tidal|soundcloud|bandcamp)/i.test(
                 pageText + bodyText
-            );
+            ) || Boolean(document.getElementById('audio-player'));
+            
+            // 检查是否存在音乐播放器相关元素
+            const musicPlayerElements = document.querySelectorAll('#audio-player, #cover-art, .cover-art, .album-cover, audio, .player');
+            if (musicPlayerElements.length > 0) {
+                isMusicSite = true;
+            }
         } catch (e) {
             debugLog('检测音乐网站时出错:', e);
             isMusicSite = false;
         }
         
-        // 如果不是音乐站点，使用较低频率检查
-        const checkInterval = isMusicSite ? 300 : 1000;
+        // 检查是否存在songs数组，这是很多音乐播放器的常见变量
+        let hasSongsArray = false;
+        try {
+            hasSongsArray = window.songs && Array.isArray(window.songs);
+        } catch (e) {
+            debugLog('检查songs数组时出错:', e);
+            hasSongsArray = false;
+        }
+        
+        // 如果是音乐站点或存在songs数组，使用更高频率的监控
+        const checkInterval = (isMusicSite || hasSongsArray) ? config.musicPlayerMonitorFrequency : config.monitorFrequency;
+        
+        debugLog(`音乐播放器监控间隔: ${checkInterval}ms (${isMusicSite ? '音乐站点' : '非音乐站点'}, ${hasSongsArray ? '有songs数组' : '无songs数组'})`);
         
         // 定期检查常见的播放器元素
         const playerObserver = setInterval(() => {
             try {
                 if (!isDocumentReady()) return;
                 
+                // 首先处理全局songs数组（这很重要，因为很多播放器直接从这个数组加载封面）
+                try {
+                    if (window.songs && Array.isArray(window.songs)) {
+                        let songProcessed = 0;
+                        
+                        window.songs.forEach(song => {
+                            if (song && song.cover && typeof song.cover === 'string' && 
+                                !song.cover.includes('images.weserv.nl') && 
+                                !song.cover.startsWith('data:') && 
+                                !song.cover.startsWith('blob:')) {
+                                
+                                // 如果歌曲封面URL尚未被处理，则处理它
+                                if (!song._originalCover) {
+                                    song._originalCover = song.cover;
+                                    song.cover = getProxyUrl(song.cover);
+                                    songProcessed++;
+                                    debugLog('处理songs数组中的封面:', song._originalCover.substring(0, 50) + (song._originalCover.length > 50 ? '...' : ''));
+                                }
+                            }
+                        });
+                        
+                        if (songProcessed > 0) {
+                            debugLog(`处理了${songProcessed}个songs数组项`);
+                        }
+                    }
+                } catch (e) {
+                    debugLog('处理songs数组时出错:', e);
+                }
+                
                 // 处理音乐播放器常见的封面元素
                 const coverSelectors = [
-                    '.album-cover', '.cover', '.artwork', '.album-art', '.song-cover',
+                    '#cover-art', '.cover-art', '.album-cover', '.song-cover', 
                     '.player-cover', '.cd-cover', '.album-img', '.music-cover',
                     '[class*="cover"]', '[class*="artwork"]', '[class*="album"]',
                     '[id*="cover"]', '[id*="artwork"]', '[id*="album"]',
@@ -1000,7 +1220,7 @@
                     'audio[poster]', 'video[poster]', '.track-cover',
                     '.jp-cover', '.now-playing-cover', '.playing-cover',
                     '.musicInfo-cover', '[data-testid="cover-art-image"]',
-                    '.cover-art', '.cover-image'
+                    '.cover-art-image', '.playlist-item-cover img'
                 ];
                 
                 // 安全地构建选择器字符串
@@ -1019,8 +1239,19 @@
                     try {
                         if (shouldSkipElement(el)) return;
                         
+                        // 处理图片元素
+                        if (el.tagName === 'IMG') {
+                            // 强制处理封面图片，即使它已经被处理过
+                            if (el.src && !el.src.includes('images.weserv.nl') && !el.src.startsWith('data:') && !el.src.startsWith('blob:')) {
+                                const originalSrc = el.src;
+                                el.setAttribute('data-original-src', originalSrc);
+                                el.src = getProxyUrl(originalSrc);
+                                debugLog('处理音乐封面:', originalSrc.substring(0, 50) + (originalSrc.length > 50 ? '...' : ''));
+                                count++;
+                            }
+                        }
                         // 处理元素背景
-                        if (el.style && el.style.backgroundImage) {
+                        else if (el.style && el.style.backgroundImage) {
                             if (processInlineBackground(el)) {
                                 count++;
                             }
@@ -1031,13 +1262,13 @@
                             const posterUrl = el.getAttribute('poster');
                             if (posterUrl && !posterUrl.includes('images.weserv.nl') && !posterUrl.startsWith('data:') && !posterUrl.startsWith('blob:')) {
                                 // 避免重复处理
-                                if (config.preventDuplicateProcessing && processedUrls.has(posterUrl)) {
+                                if (config.preventDuplicateProcessing && processedUrls.has('poster:' + posterUrl)) {
                                     return;
                                 }
                                 
                                 el.setAttribute('data-original-poster', posterUrl);
                                 el.setAttribute('poster', getProxyUrl(posterUrl));
-                                processedUrls.add(posterUrl);
+                                processedUrls.add('poster:' + posterUrl);
                                 count++;
                                 debugLog('处理播放器封面(poster):', posterUrl.substring(0, 50) + (posterUrl.length > 50 ? '...' : ''));
                             }
@@ -1047,11 +1278,15 @@
                         const coverImages = el.querySelectorAll('img');
                         coverImages.forEach(img => {
                             try {
-                                if (!shouldSkipElement(img) && processImageSrc(img)) {
+                                if (!shouldSkipElement(img) && img.src && !img.src.includes('images.weserv.nl') && !img.src.startsWith('data:') && !img.src.startsWith('blob:')) {
+                                    const originalSrc = img.src;
+                                    img.setAttribute('data-original-src', originalSrc);
+                                    img.src = getProxyUrl(originalSrc);
+                                    debugLog('处理音乐封面子元素:', originalSrc.substring(0, 50) + (originalSrc.length > 50 ? '...' : ''));
                                     count++;
                                 }
                             } catch (e) {
-                                debugLog('处理音乐播放器内图片时出错:', e);
+                                debugLog('处理音乐封面子元素时出错:', e);
                             }
                         });
                     } catch (e) {
@@ -1059,11 +1294,59 @@
                     }
                 });
                 
-                if (count > 0) {
-                    debugLog(`处理了${count}个音乐播放器图像元素`);
+                // 处理正在播放中的歌曲元素
+                const playingSelectors = [
+                    '.playing', '.active', '.current', '[data-playing="true"]',
+                    '[aria-current="true"]', '.now-playing', '.is-playing',
+                    '.playlist-item.active', '.song-item.active'
+                ];
+                
+                // 安全地构建选择器字符串
+                let playingSelector = '';
+                try {
+                    playingSelector = playingSelectors.join(',');
+                } catch (e) {
+                    debugLog('创建播放中选择器时出错:', e);
+                    return;
+                }
+                
+                const playingElements = document.querySelectorAll(playingSelector);
+                let playingProcessed = 0;
+                
+                playingElements.forEach(element => {
+                    try {
+                        // 处理播放中元素内的图片
+                        const images = element.querySelectorAll('img');
+                        images.forEach(img => {
+                            try {
+                                if (!shouldSkipElement(img) && img.src && !img.src.includes('images.weserv.nl') && !img.src.startsWith('data:') && !img.src.startsWith('blob:')) {
+                                    const originalSrc = img.src;
+                                    img.setAttribute('data-original-src', originalSrc);
+                                    img.src = getProxyUrl(originalSrc);
+                                    playingProcessed++;
+                                    debugLog('处理播放中元素图片:', originalSrc.substring(0, 50) + (originalSrc.length > 50 ? '...' : ''));
+                                }
+                            } catch (e) {
+                                debugLog('处理播放中元素内图片时出错:', e);
+                            }
+                        });
+                        
+                        // 处理播放中元素的背景图片
+                        if (element.style && element.style.backgroundImage) {
+                            if (processInlineBackground(element)) {
+                                playingProcessed++;
+                            }
+                        }
+                    } catch (e) {
+                        debugLog('处理播放中元素时出错:', e);
+                    }
+                });
+                
+                if (count > 0 || playingProcessed > 0) {
+                    debugLog(`处理了${count}个音乐封面和${playingProcessed}个播放中元素图片`);
                 }
             } catch (error) {
-                debugLog('处理音乐播放器元素时出错:', error);
+                debugLog('音乐播放器监视器运行时出错:', error);
             }
         }, checkInterval);
         
@@ -1095,7 +1378,7 @@
         }
         
         // 如果是图库类型，使用更高频率检查
-        const checkInterval = isGallerySite ? 300 : 1000;
+        const checkInterval = isGallerySite ? config.monitorFrequency / 2 : config.monitorFrequency;
         
         // 定期检查常见的相册/轮播图元素
         const galleryObserver = setInterval(() => {
@@ -1136,7 +1419,7 @@
                         const images = gallery.querySelectorAll('img');
                         images.forEach(img => {
                             try {
-                                if (!shouldSkipElement(img) && processImageSrc(img)) {
+                                if (!shouldSkipElement(img) && processImageElement(img)) {
                                     count++;
                                 }
                             } catch (e) {
@@ -1188,7 +1471,7 @@
         );
         
         // 如果是社交媒体，使用更高频率检查
-        const checkInterval = isSocialSite ? 200 : 1000;
+        const checkInterval = isSocialSite ? config.monitorFrequency / 2 : config.monitorFrequency;
         
         // 定期检查社交媒体特有元素
         const socialObserver = setInterval(() => {
@@ -1226,7 +1509,7 @@
                         
                         // 如果是图片元素
                         if (el.tagName === 'IMG' && !shouldSkipElement(el)) {
-                            if (processImageSrc(el)) {
+                            if (processImageElement(el)) {
                                 count++;
                             }
                         }
@@ -1235,7 +1518,7 @@
                         const childImages = el.querySelectorAll('img');
                         childImages.forEach(img => {
                             try {
-                                if (!shouldSkipElement(img) && processImageSrc(img)) {
+                                if (!shouldSkipElement(img) && processImageElement(img)) {
                                     count++;
                                 }
                             } catch (e) {
@@ -1283,7 +1566,7 @@
         }
         
         // 如果是电商网站，使用更高频率检查
-        const checkInterval = isEcommerceSite ? 300 : 1000;
+        const checkInterval = isEcommerceSite ? config.monitorFrequency / 2 : config.monitorFrequency;
         
         // 定期检查电商特有元素
         const ecommerceObserver = setInterval(() => {
@@ -1321,7 +1604,7 @@
                         
                         // 如果是图片元素
                         if (el.tagName === 'IMG' && !shouldSkipElement(el)) {
-                            if (processImageSrc(el)) {
+                            if (processImageElement(el)) {
                                 count++;
                             }
                         }
@@ -1330,7 +1613,7 @@
                         const childImages = el.querySelectorAll('img');
                         childImages.forEach(img => {
                             try {
-                                if (!shouldSkipElement(img) && processImageSrc(img)) {
+                                if (!shouldSkipElement(img) && processImageElement(img)) {
                                     count++;
                                 }
                             } catch (e) {
@@ -1378,7 +1661,7 @@
         }
         
         // 如果是视频网站，使用更高频率检查
-        const checkInterval = isVideoSite ? 300 : 1000;
+        const checkInterval = isVideoSite ? config.monitorFrequency / 2 : config.monitorFrequency;
         
         // 定期检查视频网站特有元素
         const videoObserver = setInterval(() => {
@@ -1412,13 +1695,13 @@
                             const posterUrl = el.getAttribute('poster');
                             if (posterUrl && !posterUrl.includes('images.weserv.nl') && !posterUrl.startsWith('data:') && !posterUrl.startsWith('blob:')) {
                                 // 避免重复处理
-                                if (config.preventDuplicateProcessing && processedUrls.has(posterUrl)) {
+                                if (config.preventDuplicateProcessing && processedUrls.has('poster:' + posterUrl)) {
                                     return;
                                 }
                                 
                                 el.setAttribute('data-original-poster', posterUrl);
                                 el.setAttribute('poster', getProxyUrl(posterUrl));
-                                processedUrls.add(posterUrl);
+                                processedUrls.add('poster:' + posterUrl);
                                 count++;
                                 debugLog('处理视频海报:', posterUrl.substring(0, 50) + (posterUrl.length > 50 ? '...' : ''));
                             }
@@ -1433,7 +1716,7 @@
                         
                         // 如果是图片元素
                         if (el.tagName === 'IMG' && !shouldSkipElement(el)) {
-                            if (processImageSrc(el)) {
+                            if (processImageElement(el)) {
                                 count++;
                             }
                         }
@@ -1442,7 +1725,7 @@
                         const childImages = el.querySelectorAll('img');
                         childImages.forEach(img => {
                             try {
-                                if (!shouldSkipElement(img) && processImageSrc(img)) {
+                                if (!shouldSkipElement(img) && processImageElement(img)) {
                                     count++;
                                 }
                             } catch (e) {
@@ -1467,7 +1750,7 @@
         window._imageProxyHandler.timers.push(videoObserver);
     }
     
-    // 设置MutationObserver监听动态添加的元素
+    // 设置MutationObserver监听DOM变化
     function setupImageObserver() {
         if (!isDocumentReady()) {
             debugLog('文档尚未准备好，跳过设置DOM变化观察器');
@@ -1560,12 +1843,8 @@
                                 target.nodeName === 'IMG' && 
                                 !shouldSkipElement(target)) {
                                 
-                                // 优化：只在属性值确实发生变化时才处理
                                 const attrValue = target.getAttribute(mutation.attributeName);
-                                const originalAttr = target.getAttribute(`data-original-${mutation.attributeName}`);
-                                
-                                // 如果属性值变化了且不是我们设置的代理值
-                                if (attrValue && (!originalAttr || attrValue !== getProxyUrl(originalAttr))) {
+                                if (attrValue && !attrValue.includes('images.weserv.nl') && !attrValue.startsWith('data:') && !attrValue.startsWith('blob:')) {
                                     newImages.push(target);
                                 }
                             }
@@ -1575,7 +1854,11 @@
                                 (target.nodeName === 'AUDIO' || target.nodeName === 'VIDEO') && 
                                 !target.hasAttribute('data-original-poster') && 
                                 !shouldSkipElement(target)) {
-                                newMediaElements.push(target);
+                                
+                                const posterValue = target.getAttribute('poster');
+                                if (posterValue && !posterValue.includes('images.weserv.nl') && !posterValue.startsWith('data:') && !posterValue.startsWith('blob:')) {
+                                    newMediaElements.push(target);
+                                }
                             }
                             
                             // 如果修改的是style属性且背景图发生变化
@@ -1584,7 +1867,29 @@
                                 target.style && 
                                 target.style.backgroundImage && 
                                 !shouldSkipElement(target)) {
-                                newBgElements.push(target);
+                                
+                                const bgImage = target.style.backgroundImage;
+                                if (bgImage && !bgImage.includes('images.weserv.nl') && !bgImage.startsWith('data:') && !bgImage.startsWith('blob:')) {
+                                    newBgElements.push(target);
+                                }
+                            }
+                            
+                            // 处理class变化，特别是active/playing类（可能表示音乐播放器中的当前项）
+                            if (mutation.attributeName === 'class' && (target.classList.contains('active') || target.classList.contains('playing'))) {
+                                // 处理内部图片
+                                const activeImages = target.querySelectorAll('img');
+                                if (activeImages.length > 0) {
+                                    activeImages.forEach(img => {
+                                        if (!shouldSkipElement(img)) {
+                                            newImages.push(img);
+                                        }
+                                    });
+                                }
+                                
+                                // 处理背景图
+                                if (target.style && target.style.backgroundImage && !shouldSkipElement(target)) {
+                                    newBgElements.push(target);
+                                }
                             }
                         } catch (e) {
                             debugLog('处理属性变更时出错:', e);
@@ -1599,7 +1904,7 @@
                 if (newImages.length > 0) {
                     newImages.forEach(img => {
                         try {
-                            if (processImageSrc(img)) {
+                            if (processImageElement(img)) {
                                 count++;
                             }
                         } catch (e) {
@@ -1628,13 +1933,13 @@
                             const posterUrl = media.getAttribute('poster');
                             if (posterUrl && !posterUrl.includes('images.weserv.nl') && !posterUrl.startsWith('data:') && !posterUrl.startsWith('blob:')) {
                                 // 避免重复处理
-                                if (config.preventDuplicateProcessing && processedUrls.has(posterUrl)) {
+                                if (config.preventDuplicateProcessing && processedUrls.has('poster:' + posterUrl)) {
                                     return;
                                 }
                                 
                                 media.setAttribute('data-original-poster', posterUrl);
                                 media.setAttribute('poster', getProxyUrl(posterUrl));
-                                processedUrls.add(posterUrl);
+                                processedUrls.add('poster:' + posterUrl);
                                 count++;
                             }
                         } catch (e) {
@@ -1648,17 +1953,15 @@
                 }
             });
             
-            // 配置观察选项，使用防抖减少频繁处理
-            const debouncedCallback = debounce(observer.callback, 100);
-            observer.callback = debouncedCallback;
-            
+            // 配置观察选项
             const observerConfig = {
                 childList: true,
                 subtree: true,
                 attributes: true,
                 attributeFilter: [
-                    'src', 'data-src', 'data-lazy-src', 'data-cover', 
-                    'poster', 'style', 'srcset', 'data-srcset'
+                    'src', 'srcset', 'poster', 'class',
+                    'data-src', 'data-lazy-src', 'data-original', 'lazy-src', 
+                    'data-cover', 'data-thumbnail', 'data-image', 'style'
                 ]
             };
             
@@ -1675,13 +1978,13 @@
     
     // 获取代理URL
     function getProxyUrl(originalUrl) {
-        // 如果URL为空，直接返回
-        if (!originalUrl || typeof originalUrl !== 'string') {
-            return originalUrl;
-        }
-        
         try {
-            // 如果已经是代理URL或者是data URL或blob URL，直接返回
+            // 如果URL为空，直接返回
+            if (!originalUrl || typeof originalUrl !== 'string') {
+                return originalUrl;
+            }
+            
+            // 如果已经是代理URL或者是特殊URL，直接返回
             if (originalUrl.includes('images.weserv.nl') || 
                 originalUrl.startsWith('data:') || 
                 originalUrl.startsWith('blob:') ||
@@ -1719,7 +2022,7 @@
         }
     }
     
-    // 清理函数 - 移除所有计时器和观察器
+    // 清理函数
     function cleanup() {
         try {
             // 清除定时器
@@ -1728,7 +2031,7 @@
                     try {
                         clearInterval(timer);
                     } catch (e) {
-                        debugLog('清除定时器时出错:', e);
+                        // 忽略清除错误
                     }
                 });
                 window._imageProxyHandler.timers = [];
@@ -1740,7 +2043,7 @@
                     try {
                         observer.disconnect();
                     } catch (e) {
-                        debugLog('断开观察器时出错:', e);
+                        // 忽略断开错误
                     }
                 });
                 window._imageProxyHandler.observers = [];
@@ -1752,17 +2055,16 @@
         }
     }
     
-    // 提供停止方法，便于用户手动停止
+    // 提供停止方法
     window._imageProxyHandler.stop = cleanup;
     
-    // 启动代理系统 - 立即拦截Image/XHR/Fetch，延迟处理DOM
+    // 启动代理系统
     initialize();
     
     // 确保在页面卸载时清理资源
     try {
         window.addEventListener('beforeunload', cleanup);
     } catch (e) {
-        debugLog('添加beforeunload事件监听器时出错:', e);
+        // 忽略事件监听器添加错误
     }
-    
 })();
