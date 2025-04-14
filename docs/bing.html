@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Bing 每日壁纸跳转</title>
+    <script>
+        // 检查URL参数
+        function checkUrlAndRedirect() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('bing')) {
+                fetchBingWallpaperUrl();
+            }
+        }
+
+        // 获取Bing壁纸URL并跳转
+        function fetchBingWallpaperUrl() {
+            // 使用JSONP方式绕过CORS限制
+            const script = document.createElement('script');
+            script.src = 'https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&callback=handleBingResponse';
+            document.body.appendChild(script);
+        }
+
+        // 处理Bing返回的数据
+        function handleBingResponse(data) {
+            if (data && data.images && data.images[0]) {
+                const imageUrl = 'https://www.bing.com' + data.images[0].url;
+                // 替换为UHD版本（如果可用）
+                const uhdUrl = imageUrl.replace('_1920x1080', '_UHD');
+                // 跳转到图片URL
+                window.location.href = uhdUrl;
+            } else {
+                document.body.innerHTML = '<h1>无法获取Bing每日图片</h1>';
+            }
+        }
+
+        // 页面加载时检查
+        window.onload = checkUrlAndRedirect;
+    </script>
+</head>
+<body>
+    <!-- 如果没有?bing参数，显示普通内容 -->
+    <h1>欢迎来到我的网站</h1>
+    <p>要查看Bing每日壁纸，请访问 <a href="?bing">/?bing</a></p>
+</body>
+</html>
