@@ -44,13 +44,48 @@
     
     <!-- 右侧每日一句样式 -->
     <style>
-      /* 右侧固定组件容器 */
+      /* 右侧固定组件容器 - 默认位置：右上角 */
       .daily-quote-sidebar {
         position: fixed;
-        top: 120px;
-        right: 30px;
-        width: 300px;
+        top: 150px;
+        right: 25px;
+        width: 280px;
         z-index: 1000;
+        transition: all 0.3s ease;
+      }
+      
+      /* 位置选项 - 可以通过修改这些类来调整位置 */
+      
+      /* 选项1：右上角（默认） */
+      .position-top-right {
+        top: 150px;
+        right: 25px;
+      }
+      
+      /* 选项2：右侧中间 */
+      .position-middle-right {
+        top: 50%;
+        right: 25px;
+        transform: translateY(-50%);
+      }
+      
+      /* 选项3：右下角 */
+      .position-bottom-right {
+        bottom: 100px;
+        right: 25px;
+        top: auto;
+      }
+      
+      /* 选项4：更靠近内容区域 */
+      .position-near-content {
+        top: 200px;
+        right: 15px;
+      }
+      
+      /* 选项5：更远离边缘 */
+      .position-far-edge {
+        top: 150px;
+        right: 40px;
       }
       
       /* 移动端和小屏幕隐藏 */
@@ -105,12 +140,6 @@
       
       .quote-brand {
         font-weight: 600;
-      }
-      
-      .quote-date {
-        background: rgba(255, 255, 255, 0.2);
-        padding: 2px 6px;
-        border-radius: 6px;
       }
       
       /* 引言内容 */
@@ -233,11 +262,6 @@
         color: #333;
       }
       
-      .quote-card:not(.with-image) .quote-date {
-        background: rgba(0, 0, 0, 0.1);
-        color: #666;
-      }
-      
       .quote-card:not(.with-image) .audio-btn {
         background: rgba(0, 0, 0, 0.05);
         border-color: rgba(0, 0, 0, 0.1);
@@ -248,6 +272,33 @@
         background: rgba(0, 0, 0, 0.05);
         border-color: rgba(0, 0, 0, 0.1);
         color: #333;
+      }
+      
+      /* 位置切换按钮 */
+      .position-toggle {
+        position: fixed;
+        top: 100px;
+        right: 25px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 10px;
+        cursor: pointer;
+        z-index: 1001;
+        opacity: 0.6;
+        transition: opacity 0.3s ease;
+      }
+      
+      .position-toggle:hover {
+        opacity: 1;
+      }
+      
+      @media (max-width: 1200px) {
+        .position-toggle {
+          display: none;
+        }
       }
     </style>
   </head>
@@ -286,8 +337,11 @@
       </div>
     </header>
 
+    <!-- 位置切换按钮 -->
+    <button class="position-toggle" id="positionToggle">调整位置</button>
+
     <!-- 右侧固定的每日一句组件 -->
-    <div class="daily-quote-sidebar" id="dailyQuoteRoot"></div>
+    <div class="daily-quote-sidebar position-top-right" id="dailyQuoteRoot"></div>
 
     <main class="mx-auto max-w-[768px]">
       <div class="flex flex-col gap-5">
@@ -512,12 +566,6 @@
           };
         }, []);
 
-        // 格式化日期
-        const formatDate = (dateString) => {
-          const date = new Date(dateString);
-          return `${date.getMonth() + 1}月${date.getDate()}日`;
-        };
-
         if (loading) {
           return React.createElement('div', { className: 'quote-card' },
             React.createElement('div', { className: 'loading-card' },
@@ -588,6 +636,61 @@
     </script>
 
     <script>
+      // 位置切换功能
+      const positions = [
+        'position-top-right',
+        'position-middle-right', 
+        'position-bottom-right',
+        'position-near-content',
+        'position-far-edge'
+      ];
+      
+      const positionNames = [
+        '右上角',
+        '右侧中间',
+        '右下角', 
+        '靠近内容',
+        '远离边缘'
+      ];
+      
+      let currentPositionIndex = 0;
+      
+      document.getElementById('positionToggle').addEventListener('click', function() {
+        const sidebar = document.getElementById('dailyQuoteRoot');
+        
+        // 移除当前位置类
+        sidebar.classList.remove(positions[currentPositionIndex]);
+        
+        // 切换到下一个位置
+        currentPositionIndex = (currentPositionIndex + 1) % positions.length;
+        
+        // 添加新位置类
+        sidebar.classList.add(positions[currentPositionIndex]);
+        
+        // 更新按钮文字
+        this.textContent = positionNames[currentPositionIndex];
+        
+        // 保存位置偏好到localStorage
+        localStorage.setItem('quotePosition', currentPositionIndex);
+      });
+      
+      // 页面加载时恢复保存的位置
+      window.addEventListener('load', function() {
+        const savedPosition = localStorage.getItem('quotePosition');
+        if (savedPosition !== null) {
+          const sidebar = document.getElementById('dailyQuoteRoot');
+          const toggleBtn = document.getElementById('positionToggle');
+          
+          // 移除默认位置
+          sidebar.classList.remove(positions[currentPositionIndex]);
+          
+          // 设置保存的位置
+          currentPositionIndex = parseInt(savedPosition);
+          sidebar.classList.add(positions[currentPositionIndex]);
+          toggleBtn.textContent = positionNames[currentPositionIndex];
+        }
+      });
+
       // 设置当前年份
       document.getElementById('current-year').textContent = new Date().getFullYear();
 
