@@ -11,7 +11,7 @@
   },
   "github": {
     "owner": "Master08s",
-    "repo": "looks-blog",
+    "repo": "master08s.github.io",
     "token": "process.env.GITHUB_TOKEN"
   },
   "social": {
@@ -43,10 +43,10 @@
     "enabled": true,
     "provider": "giscus",
     "giscus": {
-      "repo": "Master08s/looks-blog",
-      "repoId": "",
-      "category": "General",
-      "categoryId": "",
+      "repo": "Master08s/master08s.github.io",
+      "repoId": "R_kgDOO1oT8w",
+      "category": "Announcements",
+      "categoryId": "DIC_kwDOO1oT884CrAb",
       "mapping": "pathname",
       "strict": "0",
       "reactionsEnabled": "1",
