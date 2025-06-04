@@ -42,29 +42,170 @@
 
     <script src="./assets/dist/main.iife.js"></script>
     
-    <!-- 右侧组件样式 -->
+    <!-- 侧边栏样式 -->
     <style>
-      /* 右侧固定组件容器 */
-      .sidebar-widgets {
+      /* 侧边栏触发按钮容器 */
+      .sidebar-triggers {
         position: fixed;
-        top: 140px;
-        right: 40px;
-        width: 320px;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
         z-index: 1000;
-        font-family: 'HarmonyOS Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 12px;
+        font-family: 'HarmonyOS Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       }
       
-      /* 移动端和小屏幕隐藏 */
-      @media (max-width: 1280px) {
-        .sidebar-widgets {
+      /* 移动端隐藏 */
+      @media (max-width: 768px) {
+        .sidebar-triggers {
           display: none;
         }
       }
       
-      /* 通用卡片样式 */
+      /* 触发按钮样式 */
+      .sidebar-trigger {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border: none;
+        border-radius: 12px 0 0 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+        box-shadow: 
+          0 4px 12px rgba(99, 102, 241, 0.3),
+          0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .sidebar-trigger:hover {
+        transform: translateX(-4px);
+        box-shadow: 
+          0 6px 16px rgba(99, 102, 241, 0.4),
+          0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+      
+      .sidebar-trigger:active {
+        transform: translateX(-2px);
+      }
+      
+      .sidebar-trigger.active {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        transform: translateX(-4px);
+      }
+      
+      /* 触发按钮标签 */
+      .sidebar-trigger::before {
+        content: attr(data-label);
+        position: absolute;
+        right: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s ease;
+        margin-right: 8px;
+      }
+      
+      .sidebar-trigger:hover::before {
+        opacity: 1;
+      }
+      
+      /* 侧边栏容器 */
+      .sidebar-panel {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 400px;
+        height: 100vh;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-left: 1px solid rgba(0, 0, 0, 0.1);
+        box-shadow: -4px 0 24px rgba(0, 0, 0, 0.1);
+        transform: translateX(100%);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1001;
+        overflow-y: auto;
+        padding: 24px;
+      }
+      
+      .sidebar-panel.open {
+        transform: translateX(0);
+      }
+      
+      /* 侧边栏头部 */
+      .sidebar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      }
+      
+      .sidebar-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      
+      .sidebar-close {
+        width: 32px;
+        height: 32px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        transition: all 0.2s ease;
+      }
+      
+      .sidebar-close:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+        color: #475569;
+      }
+      
+      /* 遮罩层 */
+      .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 1000;
+      }
+      
+      .sidebar-overlay.visible {
+        opacity: 1;
+        visibility: visible;
+      }
+      
+      /* 组件卡片样式 */
       .widget-card {
         background: #ffffff;
         border: 1px solid rgba(0, 0, 0, 0.06);
@@ -72,21 +213,15 @@
         padding: 24px;
         box-shadow: 
           0 1px 3px rgba(0, 0, 0, 0.05),
-          0 4px 12px rgba(0, 0, 0, 0.04),
-          0 8px 24px rgba(0, 0, 0, 0.03);
-        overflow: hidden;
-        position: relative;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        backdrop-filter: blur(20px);
+          0 4px 12px rgba(0, 0, 0, 0.04);
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
       }
       
       .widget-card:hover {
-        transform: translateY(-2px);
         box-shadow: 
           0 4px 8px rgba(0, 0, 0, 0.08),
-          0 8px 20px rgba(0, 0, 0, 0.06),
-          0 16px 32px rgba(0, 0, 0, 0.04);
-        border-color: rgba(0, 0, 0, 0.1);
+          0 8px 20px rgba(0, 0, 0, 0.06);
       }
       
       /* 每日一句卡片样式 */
@@ -97,21 +232,17 @@
         padding: 24px;
         box-shadow: 
           0 1px 3px rgba(0, 0, 0, 0.05),
-          0 4px 12px rgba(0, 0, 0, 0.04),
-          0 8px 24px rgba(0, 0, 0, 0.03);
+          0 4px 12px rgba(0, 0, 0, 0.04);
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
         overflow: hidden;
         position: relative;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        backdrop-filter: blur(20px);
       }
       
       .quote-card:hover {
-        transform: translateY(-2px);
         box-shadow: 
           0 4px 8px rgba(0, 0, 0, 0.08),
-          0 8px 20px rgba(0, 0, 0, 0.06),
-          0 16px 32px rgba(0, 0, 0, 0.04);
-        border-color: rgba(0, 0, 0, 0.1);
+          0 8px 20px rgba(0, 0, 0, 0.06);
       }
       
       /* 背景图片版本 */
@@ -498,28 +629,35 @@
         flex-shrink: 0;
       }
       
-      /* 响应式调整 */
-      @media (max-width: 1400px) {
-        .sidebar-widgets {
-          width: 280px;
-          right: 20px;
-        }
-        
-        .widget-card, .quote-card {
-          padding: 20px;
-        }
-        
-        .quote-text {
-          font-size: 15px;
-        }
-        
-        .weather-temp {
-          font-size: 28px;
-        }
+      .close-icon {
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
       }
       
       /* 深色模式支持 */
       @media (prefers-color-scheme: dark) {
+        .sidebar-panel {
+          background: rgba(31, 41, 55, 0.95);
+          border-left-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-title {
+          color: #f9fafb;
+        }
+        
+        .sidebar-close {
+          background: #374151;
+          border-color: #4b5563;
+          color: #d1d5db;
+        }
+        
+        .sidebar-close:hover {
+          background: #4b5563;
+          border-color: #6b7280;
+          color: #f9fafb;
+        }
+        
         .widget-card:not(.with-image), .quote-card:not(.with-image) {
           background: #1f2937;
           border-color: rgba(255, 255, 255, 0.1);
@@ -559,29 +697,18 @@
         }
       }
       
-      /* 动画效果 */
-      .widget-card, .quote-card {
-        animation: slideInRight 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      
-      @keyframes slideInRight {
-        from {
-          opacity: 0;
-          transform: translateX(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateX(0);
+      /* 响应式调整 */
+      @media (max-width: 1024px) {
+        .sidebar-panel {
+          width: 350px;
         }
       }
       
-      /* 内容更新动画 */
-      .quote-content, .weather-content {
-        transition: opacity 0.3s ease;
-      }
-      
-      .quote-content.updating, .weather-content.updating {
-        opacity: 0.6;
+      @media (max-width: 480px) {
+        .sidebar-panel {
+          width: 100vw;
+          padding: 20px;
+        }
       }
     </style>
   </head>
@@ -620,9 +747,39 @@
       </div>
     </header>
 
-    <!-- 右侧固定的组件 -->
-    <div class="sidebar-widgets">
+    <!-- 侧边栏触发按钮 -->
+    <div class="sidebar-triggers" id="sidebarTriggers"></div>
+
+    <!-- 遮罩层 -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- 天气侧边栏 -->
+    <div class="sidebar-panel" id="weatherSidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">
+          🌤️ 实时天气
+        </div>
+        <button class="sidebar-close" id="weatherClose">
+          <svg class="close-icon" viewBox="0 0 24 24">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </button>
+      </div>
       <div id="weatherRoot"></div>
+    </div>
+
+    <!-- 每日一句侧边栏 -->
+    <div class="sidebar-panel" id="quoteSidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">
+          ✨ 每日一句
+        </div>
+        <button class="sidebar-close" id="quoteClose">
+          <svg class="close-icon" viewBox="0 0 24 24">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </button>
+      </div>
       <div id="dailyQuoteRoot"></div>
     </div>
 
@@ -678,6 +835,95 @@
           React.createElement('path', { d: 'M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z' })
         )
       );
+
+      // 侧边栏管理器
+      const SidebarManager = () => {
+        const [weatherOpen, setWeatherOpen] = useState(false);
+        const [quoteOpen, setQuoteOpen] = useState(false);
+
+        const toggleWeather = () => {
+          setWeatherOpen(!weatherOpen);
+          if (quoteOpen) setQuoteOpen(false);
+        };
+
+        const toggleQuote = () => {
+          setQuoteOpen(!quoteOpen);
+          if (weatherOpen) setWeatherOpen(false);
+        };
+
+        const closeAll = () => {
+          setWeatherOpen(false);
+          setQuoteOpen(false);
+        };
+
+        useEffect(() => {
+          const weatherSidebar = document.getElementById('weatherSidebar');
+          const quoteSidebar = document.getElementById('quoteSidebar');
+          const overlay = document.getElementById('sidebarOverlay');
+          const weatherClose = document.getElementById('weatherClose');
+          const quoteClose = document.getElementById('quoteClose');
+
+          // 更新侧边栏状态
+          if (weatherSidebar) {
+            weatherSidebar.classList.toggle('open', weatherOpen);
+          }
+          if (quoteSidebar) {
+            quoteSidebar.classList.toggle('open', quoteOpen);
+          }
+          if (overlay) {
+            overlay.classList.toggle('visible', weatherOpen || quoteOpen);
+          }
+
+          // 关闭按钮事件
+          const handleWeatherClose = () => setWeatherOpen(false);
+          const handleQuoteClose = () => setQuoteOpen(false);
+          const handleOverlayClick = () => closeAll();
+
+          if (weatherClose) {
+            weatherClose.addEventListener('click', handleWeatherClose);
+          }
+          if (quoteClose) {
+            quoteClose.addEventListener('click', handleQuoteClose);
+          }
+          if (overlay) {
+            overlay.addEventListener('click', handleOverlayClick);
+          }
+
+          // ESC键关闭
+          const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+              closeAll();
+            }
+          };
+          document.addEventListener('keydown', handleKeyDown);
+
+          return () => {
+            if (weatherClose) {
+              weatherClose.removeEventListener('click', handleWeatherClose);
+            }
+            if (quoteClose) {
+              quoteClose.removeEventListener('click', handleQuoteClose);
+            }
+            if (overlay) {
+              overlay.removeEventListener('click', handleOverlayClick);
+            }
+            document.removeEventListener('keydown', handleKeyDown);
+          };
+        }, [weatherOpen, quoteOpen]);
+
+        return React.createElement('div', { className: 'sidebar-triggers' },
+          React.createElement('button', {
+            className: `sidebar-trigger ${weatherOpen ? 'active' : ''}`,
+            onClick: toggleWeather,
+            'data-label': '天气'
+          }, '🌤️'),
+          React.createElement('button', {
+            className: `sidebar-trigger ${quoteOpen ? 'active' : ''}`,
+            onClick: toggleQuote,
+            'data-label': '每日一句'
+          }, '✨')
+        );
+      };
 
       // 城市代码映射
       const CITY_CODES = {
@@ -1175,6 +1421,9 @@
       };
 
       // 渲染组件
+      const triggersRoot = ReactDOM.createRoot(document.getElementById('sidebarTriggers'));
+      triggersRoot.render(React.createElement(SidebarManager));
+
       const weatherRoot = ReactDOM.createRoot(document.getElementById('weatherRoot'));
       weatherRoot.render(React.createElement(WeatherWidget));
 
