@@ -42,179 +42,166 @@
 
     <script src="/assets/dist/main.iife.js"></script>
     
-    <!-- 每日一句样式 -->
+    <!-- 右侧每日一句样式 -->
     <style>
-      .daily-quote-container {
-        margin: 2rem auto 3rem;
-        max-width: 600px;
-        padding: 0 1rem;
+      /* 右侧固定组件容器 */
+      .daily-quote-sidebar {
+        position: fixed;
+        top: 50%;
+        right: 20px;
+        transform: translateY(-50%);
+        width: 320px;
+        z-index: 1000;
+        transition: all 0.3s ease;
       }
       
-      /* 移动端隐藏 */
-      @media (max-width: 768px) {
-        .daily-quote-container {
+      /* 移动端和小屏幕隐藏 */
+      @media (max-width: 1200px) {
+        .daily-quote-sidebar {
           display: none;
         }
       }
       
-      .daily-quote-card {
-        position: relative;
-        width: 100%;
-        height: 300px;
-        border-radius: 20px;
+      /* 确保主内容不被遮挡 */
+      @media (min-width: 1201px) {
+        body {
+          margin-right: 340px;
+        }
+      }
+      
+      /* 每日一句卡片样式 */
+      .quote-card {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 
+          0 20px 40px rgba(0, 0, 0, 0.1),
+          0 8px 16px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         overflow: hidden;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        transition: all 0.3s ease;
-        cursor: pointer;
+        position: relative;
       }
       
-      .daily-quote-card:hover {
+      .quote-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+        box-shadow: 
+          0 32px 64px rgba(0, 0, 0, 0.15),
+          0 16px 32px rgba(0, 0, 0, 0.1);
       }
       
-      .quote-background {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+      /* 背景图片版本 */
+      .quote-card.with-image {
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        filter: blur(1px);
-        transform: scale(1.1);
-      }
-      
-      .quote-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-          135deg,
-          rgba(0, 0, 0, 0.4) 0%,
-          rgba(0, 0, 0, 0.2) 50%,
-          rgba(0, 0, 0, 0.3) 100%
-        );
-      }
-      
-      .quote-content {
-        position: relative;
-        z-index: 2;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        padding: 24px;
         color: white;
       }
       
+      .quote-card.with-image::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.6) 100%);
+        z-index: 1;
+      }
+      
+      .quote-card.with-image .quote-content {
+        position: relative;
+        z-index: 2;
+      }
+      
+      /* 标题区域 */
       .quote-header {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
+        align-items: center;
+        margin-bottom: 16px;
+        font-size: 12px;
+        opacity: 0.8;
       }
       
       .quote-brand {
-        font-size: 14px;
-        font-weight: 500;
-        opacity: 0.9;
+        font-weight: 600;
         letter-spacing: 0.5px;
       }
       
       .quote-date {
-        font-size: 12px;
-        opacity: 0.8;
         background: rgba(255, 255, 255, 0.2);
-        padding: 4px 12px;
-        border-radius: 12px;
+        padding: 4px 8px;
+        border-radius: 8px;
         backdrop-filter: blur(10px);
       }
       
-      .quote-main {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        text-align: center;
-        padding: 20px 0;
-      }
-      
+      /* 引言内容 */
       .quote-text {
-        font-size: 22px;
+        font-size: 16px;
         font-weight: 600;
-        line-height: 1.4;
-        margin-bottom: 16px;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        line-height: 1.5;
+        margin-bottom: 12px;
         font-style: italic;
       }
       
       .quote-translation {
-        font-size: 16px;
-        font-weight: 400;
-        opacity: 0.95;
-        line-height: 1.5;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        font-size: 14px;
+        line-height: 1.4;
+        margin-bottom: 16px;
+        opacity: 0.9;
       }
       
+      /* 控制按钮 */
       .quote-controls {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 8px;
       }
       
-      .audio-control {
+      .audio-btn {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         background: rgba(255, 255, 255, 0.2);
-        padding: 8px 16px;
-        border-radius: 20px;
-        backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 6px 12px;
+        border-radius: 20px;
         cursor: pointer;
         transition: all 0.2s ease;
+        backdrop-filter: blur(10px);
+        font-size: 12px;
+        font-weight: 500;
       }
       
-      .audio-control:hover {
+      .audio-btn:hover {
         background: rgba(255, 255, 255, 0.3);
         transform: translateY(-1px);
       }
       
-      .audio-control.playing {
-        background: rgba(255, 255, 255, 0.4);
+      .audio-btn.playing {
+        background: rgba(59, 130, 246, 0.8);
         animation: pulse 2s infinite;
       }
       
       @keyframes pulse {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
-        50% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
+        0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+        50% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
       }
       
-      .audio-icon {
-        width: 16px;
-        height: 16px;
-        fill: currentColor;
-      }
-      
-      .audio-text {
-        font-size: 14px;
-        font-weight: 500;
-      }
-      
-      .navigation-controls {
+      .nav-controls {
         display: flex;
-        gap: 8px;
+        gap: 4px;
       }
       
       .nav-btn {
-        width: 36px;
-        height: 36px;
+        width: 28px;
+        height: 28px;
         background: rgba(255, 255, 255, 0.2);
         border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 8px;
+        border-radius: 6px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -228,32 +215,28 @@
         transform: translateY(-1px);
       }
       
-      .nav-btn:active {
-        transform: translateY(0);
+      .nav-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
       }
       
-      .nav-icon {
-        width: 16px;
-        height: 16px;
-        fill: currentColor;
-      }
-      
+      /* 加载状态 */
       .loading-card {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        height: 300px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        gap: 16px;
+        height: 200px;
+        gap: 12px;
+        color: #6b7280;
       }
       
       .loading-spinner {
-        width: 40px;
-        height: 40px;
-        border: 3px solid rgba(255, 255, 255, 0.3);
-        border-top: 3px solid white;
+        width: 32px;
+        height: 32px;
+        border: 3px solid rgba(107, 114, 128, 0.3);
+        border-top: 3px solid #6b7280;
         border-radius: 50%;
         animation: spin 1s linear infinite;
       }
@@ -263,64 +246,67 @@
         100% { transform: rotate(360deg); }
       }
       
-      .loading-text {
-        font-size: 16px;
-        font-weight: 500;
-      }
-      
+      /* 错误状态 */
       .error-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 300px;
-        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-        color: white;
         text-align: center;
-        gap: 16px;
+        padding: 20px;
+        color: #ef4444;
       }
       
       .error-title {
-        font-size: 18px;
+        font-size: 14px;
         font-weight: 600;
+        margin-bottom: 8px;
       }
       
       .error-message {
-        font-size: 14px;
-        opacity: 0.9;
-      }
-      
-      .retry-controls {
-        display: flex;
-        gap: 12px;
-        margin-top: 8px;
+        font-size: 12px;
+        margin-bottom: 12px;
+        opacity: 0.8;
       }
       
       .retry-btn {
-        padding: 8px 16px;
-        background: rgba(255, 255, 255, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 20px;
-        color: white;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+        padding: 6px 12px;
+        border-radius: 8px;
         cursor: pointer;
         transition: all 0.2s ease;
-        font-size: 14px;
-        backdrop-filter: blur(10px);
+        font-size: 12px;
       }
       
       .retry-btn:hover {
-        background: rgba(255, 255, 255, 0.3);
+        background: rgba(239, 68, 68, 0.2);
       }
       
-      /* 音频进度条 */
-      .audio-progress {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        height: 3px;
-        background: rgba(255, 255, 255, 0.8);
-        transition: width 0.1s ease;
-        border-radius: 0 0 20px 20px;
+      /* 图标样式 */
+      .icon {
+        width: 14px;
+        height: 14px;
+        fill: currentColor;
+      }
+      
+      /* 无图片版本的样式调整 */
+      .quote-card:not(.with-image) {
+        color: #1f2937;
+      }
+      
+      .quote-card:not(.with-image) .quote-date {
+        background: rgba(107, 114, 128, 0.1);
+        color: #6b7280;
+      }
+      
+      .quote-card:not(.with-image) .audio-btn {
+        background: rgba(107, 114, 128, 0.1);
+        border-color: rgba(107, 114, 128, 0.2);
+        color: #374151;
+      }
+      
+      .quote-card:not(.with-image) .nav-btn {
+        background: rgba(107, 114, 128, 0.1);
+        border-color: rgba(107, 114, 128, 0.2);
+        color: #374151;
       }
     </style>
   </head>
@@ -359,8 +345,8 @@
       </div>
     </header>
 
-    <!-- React 每日一句组件容器 -->
-    <div class="daily-quote-container" id="dailyQuoteRoot"></div>
+    <!-- 右侧固定的每日一句组件 -->
+    <div class="daily-quote-sidebar" id="dailyQuoteRoot"></div>
 
     <main class="mx-auto max-w-[768px]">
       <div class="flex flex-col gap-5">
@@ -412,62 +398,90 @@
     <script type="text/babel">
       const { useState, useEffect, useRef } = React;
 
+      // 媒体查询 Hook
+      const useMediaQuery = (query) => {
+        const [matches, setMatches] = useState(false);
+
+        useEffect(() => {
+          const media = window.matchMedia(query);
+          setMatches(media.matches);
+
+          const listener = (event) => {
+            setMatches(event.matches);
+          };
+
+          media.addEventListener("change", listener);
+          return () => media.removeEventListener("change", listener);
+        }, [query]);
+
+        return matches;
+      };
+
       // SVG 图标组件
-      const SpeakerIcon = () => (
-        React.createElement('svg', { className: 'audio-icon', viewBox: '0 0 24 24' },
-          React.createElement('path', { d: 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z' })
+      const VolumeIcon = () => (
+        React.createElement('svg', { className: 'icon', viewBox: '0 0 24 24' },
+          React.createElement('path', { d: 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z' })
+        )
+      );
+
+      const VolumeOffIcon = () => (
+        React.createElement('svg', { className: 'icon', viewBox: '0 0 24 24' },
+          React.createElement('path', { d: 'M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z' })
         )
       );
 
       const ChevronLeftIcon = () => (
-        React.createElement('svg', { className: 'nav-icon', viewBox: '0 0 24 24' },
+        React.createElement('svg', { className: 'icon', viewBox: '0 0 24 24' },
           React.createElement('path', { d: 'M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z' })
         )
       );
 
       const ChevronRightIcon = () => (
-        React.createElement('svg', { className: 'nav-icon', viewBox: '0 0 24 24' },
+        React.createElement('svg', { className: 'icon', viewBox: '0 0 24 24' },
           React.createElement('path', { d: 'M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z' })
         )
       );
 
       const RefreshIcon = () => (
-        React.createElement('svg', { className: 'nav-icon', viewBox: '0 0 24 24' },
+        React.createElement('svg', { className: 'icon', viewBox: '0 0 24 24' },
           React.createElement('path', { d: 'M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z' })
         )
       );
 
       // 每日一句组件
-      const DailyQuote = () => {
-        const [quoteData, setQuoteData] = useState(null);
+      const DailyQuote = ({ showImage = true, compact = false }) => {
+        const [quote, setQuote] = useState(null);
         const [loading, setLoading] = useState(true);
         const [error, setError] = useState(null);
         const [isPlaying, setIsPlaying] = useState(false);
-        const [audioProgress, setAudioProgress] = useState(0);
-        const [isRandom, setIsRandom] = useState(false);
+        const [currentDate, setCurrentDate] = useState(null);
         const audioRef = useRef(null);
 
-        // 生成随机日期
-        const getRandomDate = () => {
+        // 检测是否为移动设备
+        const isMobile = useMediaQuery("(max-width: 640px)");
+
+        // 获取昨天的日期
+        const getYesterdayDate = () => {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          return yesterday.toISOString().split("T")[0];
+        };
+
+        // 生成随机历史日期
+        const getRandomHistoryDate = () => {
           const today = new Date();
-          const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
-          const randomTime = oneYearAgo.getTime() + Math.random() * (today.getTime() - oneYearAgo.getTime());
-          const randomDate = new Date(randomTime);
-          
-          const year = randomDate.getFullYear();
-          const month = String(randomDate.getMonth() + 1).padStart(2, '0');
-          const day = String(randomDate.getDate()).padStart(2, '0');
-          
-          return `${year}-${month}-${day}`;
+          const randomDaysAgo = Math.floor(Math.random() * 365) + 1;
+          const randomDate = new Date(today);
+          randomDate.setDate(today.getDate() - randomDaysAgo);
+          return randomDate.toISOString().split("T")[0];
         };
 
         // 获取每日一句
-        const fetchQuote = async (date = null, random = false) => {
-          setLoading(true);
-          setError(null);
-          setIsRandom(random);
-
+        const fetchQuote = async (date, type) => {
           try {
+            setLoading(true);
+            setError(null);
+
             const proxyUrls = [
               'https://api.allorigins.win/raw?url=',
               'https://corsproxy.io/?',
@@ -477,6 +491,9 @@
             let apiUrl = 'https://open.iciba.com/dsapi/';
             if (date) {
               apiUrl += `?date=${date}`;
+              if (type) {
+                apiUrl += `&type=${type}`;
+              }
             }
 
             let response = null;
@@ -510,55 +527,96 @@
             }
             
             const data = await response.json();
-            setQuoteData(data);
-          } catch (error) {
-            console.error('获取每日一句失败:', error);
-            setError(error.message);
+            
+            if (!data.content || !data.note) {
+              throw new Error('获取的数据不完整');
+            }
+
+            setQuote(data);
+            if (data.dateline) {
+              setCurrentDate(data.dateline);
+            }
+          } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : "网络连接失败，请检查网络后重试";
+            setError(errorMessage);
+            console.error("Failed to fetch daily quote:", err);
           } finally {
             setLoading(false);
           }
         };
 
-        // 音频控制
-        const toggleAudio = () => {
-          if (!quoteData?.tts) return;
-
-          if (audioRef.current && !audioRef.current.paused) {
-            audioRef.current.pause();
-            setIsPlaying(false);
+        // 获取下一天的名言
+        const fetchNextQuote = () => {
+          if (currentDate) {
+            fetchQuote(currentDate, "next");
           } else {
+            const today = new Date().toISOString().split("T")[0];
+            fetchQuote(today);
+          }
+        };
+
+        // 获取上一天的名言
+        const fetchPreviousQuote = () => {
+          if (currentDate) {
+            fetchQuote(currentDate, "last");
+          } else {
+            const dayBeforeYesterday = new Date();
+            dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 2);
+            const dateStr = dayBeforeYesterday.toISOString().split("T")[0];
+            fetchQuote(dateStr);
+          }
+        };
+
+        // 获取随机名言
+        const fetchRandomQuote = () => {
+          const randomDate = getRandomHistoryDate();
+          fetchQuote(randomDate);
+        };
+
+        // 音频播放控制
+        const playAudio = async () => {
+          if (!quote?.tts) return;
+
+          try {
             if (audioRef.current) {
               audioRef.current.pause();
+              audioRef.current = null;
             }
 
-            audioRef.current = new Audio(quoteData.tts);
-            
-            audioRef.current.addEventListener('loadstart', () => setIsPlaying(true));
-            audioRef.current.addEventListener('timeupdate', () => {
-              if (audioRef.current.duration) {
-                const progress = (audioRef.current.currentTime / audioRef.current.duration) * 100;
-                setAudioProgress(progress);
-              }
-            });
-            audioRef.current.addEventListener('ended', () => {
-              setIsPlaying(false);
-              setAudioProgress(0);
-            });
-            audioRef.current.addEventListener('error', () => {
-              setIsPlaying(false);
-              setAudioProgress(0);
-            });
+            const newAudio = new Audio(quote.tts);
+            audioRef.current = newAudio;
+            setIsPlaying(true);
 
-            audioRef.current.play().catch(error => {
-              console.error('音频播放失败:', error);
+            newAudio.onended = () => {
               setIsPlaying(false);
-            });
+              audioRef.current = null;
+            };
+
+            newAudio.onerror = () => {
+              setIsPlaying(false);
+              audioRef.current = null;
+            };
+
+            await newAudio.play();
+          } catch (err) {
+            console.error("Failed to play audio:", err);
+            setIsPlaying(false);
+            audioRef.current = null;
           }
+        };
+
+        const stopAudio = () => {
+          if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current = null;
+          }
+          setIsPlaying(false);
         };
 
         // 初始化
         useEffect(() => {
-          fetchQuote();
+          const yesterdayDate = getYesterdayDate();
+          fetchQuote(yesterdayDate);
           
           return () => {
             if (audioRef.current) {
@@ -574,97 +632,79 @@
         };
 
         if (loading) {
-          return React.createElement('div', { className: 'daily-quote-card' },
+          return React.createElement('div', { className: 'quote-card' },
             React.createElement('div', { className: 'loading-card' },
               React.createElement('div', { className: 'loading-spinner' }),
-              React.createElement('div', { className: 'loading-text' }, 
-                isRandom ? '正在获取随机一句...' : '正在加载每日一句...'
-              )
+              React.createElement('div', null, '正在加载...')
             )
           );
         }
 
-        if (error) {
-          return React.createElement('div', { className: 'daily-quote-card' },
+        if (error || !quote) {
+          return React.createElement('div', { className: 'quote-card' },
             React.createElement('div', { className: 'error-card' },
               React.createElement('div', { className: 'error-title' }, '加载失败'),
-              React.createElement('div', { className: 'error-message' }, '网络连接可能存在问题'),
-              React.createElement('div', { className: 'retry-controls' },
-                React.createElement('button', {
-                  className: 'retry-btn',
-                  onClick: () => fetchQuote(getRandomDate(), true)
-                }, '随机一句'),
-                React.createElement('button', {
-                  className: 'retry-btn',
-                  onClick: () => fetchQuote()
-                }, '重试')
-              )
+              React.createElement('div', { className: 'error-message' }, error || '暂时无法获取每日一句'),
+              React.createElement('button', {
+                className: 'retry-btn',
+                onClick: () => fetchQuote(getYesterdayDate())
+              }, '重试')
             )
           );
         }
 
-        const backgroundImage = quoteData?.picture || '/images/cherry-blossom-bg.png';
+        const cardClass = `quote-card ${showImage && quote.picture ? 'with-image' : ''}`;
+        const cardStyle = showImage && quote.picture ? {
+          backgroundImage: `url(${quote.picture})`
+        } : {};
 
-        return React.createElement('div', { className: 'daily-quote-card' },
-          React.createElement('div', { 
-            className: 'quote-background',
-            style: { backgroundImage: `url(${backgroundImage})` }
-          }),
-          React.createElement('div', { className: 'quote-overlay' }),
+        return React.createElement('div', { className: cardClass, style: cardStyle },
           React.createElement('div', { className: 'quote-content' },
             React.createElement('div', { className: 'quote-header' },
-              React.createElement('div', { className: 'quote-brand' }, 
-                isRandom ? '随机每日一句' : '词霸每日一句'
-              ),
+              React.createElement('div', { className: 'quote-brand' }, quote.caption || '每日一句'),
               React.createElement('div', { className: 'quote-date' }, 
-                quoteData ? formatDate(quoteData.dateline) : ''
+                quote ? formatDate(quote.dateline) : ''
               )
             ),
-            React.createElement('div', { className: 'quote-main' },
-              React.createElement('div', { className: 'quote-text' }, 
-                `"${quoteData?.content || ''}"`
-              ),
-              React.createElement('div', { className: 'quote-translation' }, 
-                quoteData?.note || ''
-              )
-            ),
+            React.createElement('div', { className: 'quote-text' }, `"${quote.content}"`),
+            React.createElement('div', { className: 'quote-translation' }, quote.note),
             React.createElement('div', { className: 'quote-controls' },
-              quoteData?.tts && React.createElement('div', {
-                className: `audio-control ${isPlaying ? 'playing' : ''}`,
-                onClick: toggleAudio
+              quote.tts && React.createElement('button', {
+                className: `audio-btn ${isPlaying ? 'playing' : ''}`,
+                onClick: isPlaying ? stopAudio : playAudio,
+                disabled: isPlaying
               },
-                React.createElement(SpeakerIcon),
-                React.createElement('span', { className: 'audio-text' }, '朗读')
+                React.createElement(isPlaying ? VolumeOffIcon : VolumeIcon),
+                React.createElement('span', null, '朗读')
               ),
-              React.createElement('div', { className: 'navigation-controls' },
+              React.createElement('div', { className: 'nav-controls' },
                 React.createElement('button', {
                   className: 'nav-btn',
-                  onClick: () => fetchQuote(getRandomDate(), true),
-                  title: '随机一句'
+                  onClick: fetchPreviousQuote,
+                  disabled: loading,
+                  title: '上一句'
                 }, React.createElement(ChevronLeftIcon)),
                 React.createElement('button', {
                   className: 'nav-btn',
-                  onClick: () => fetchQuote(),
-                  title: '刷新'
+                  onClick: fetchRandomQuote,
+                  disabled: loading,
+                  title: '随机一句'
                 }, React.createElement(RefreshIcon)),
                 React.createElement('button', {
                   className: 'nav-btn',
-                  onClick: () => fetchQuote(getRandomDate(), true),
+                  onClick: fetchNextQuote,
+                  disabled: loading,
                   title: '下一句'
                 }, React.createElement(ChevronRightIcon))
               )
             )
-          ),
-          audioProgress > 0 && React.createElement('div', {
-            className: 'audio-progress',
-            style: { width: `${audioProgress}%` }
-          })
+          )
         );
       };
 
       // 渲染组件
       const root = ReactDOM.createRoot(document.getElementById('dailyQuoteRoot'));
-      root.render(React.createElement(DailyQuote));
+      root.render(React.createElement(DailyQuote, { showImage: true, compact: false }));
     </script>
 
     <script>
