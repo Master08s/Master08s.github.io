@@ -53,7 +53,7 @@
         z-index: 1000;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
         font-family: 'HarmonyOS Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       }
       
@@ -64,32 +64,37 @@
         }
       }
       
-      /* 触发按钮样式 */
+      /* 触发按钮样式 - 现代简约风格 */
       .sidebar-trigger {
-        width: 48px;
-        height: 48px;
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.8);
         border: none;
-        border-radius: 12px 0 0 12px;
+        border-radius: 10px 0 0 10px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
-        font-size: 20px;
+        color: #64748b;
+        font-size: 18px;
         box-shadow: 
-          0 4px 12px rgba(99, 102, 241, 0.3),
-          0 2px 4px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          0 2px 10px rgba(0, 0, 0, 0.05),
+          0 0 1px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
         position: relative;
         overflow: hidden;
+        backdrop-filter: blur(10px);
+        border-right: none;
+        border-left: 1px solid rgba(0, 0, 0, 0.05);
       }
       
       .sidebar-trigger:hover {
         transform: translateX(-4px);
+        background: rgba(255, 255, 255, 0.95);
+        color: #334155;
         box-shadow: 
-          0 6px 16px rgba(99, 102, 241, 0.4),
-          0 4px 8px rgba(0, 0, 0, 0.15);
+          0 4px 12px rgba(0, 0, 0, 0.08),
+          0 0 1px rgba(0, 0, 0, 0.1);
       }
       
       .sidebar-trigger:active {
@@ -97,8 +102,31 @@
       }
       
       .sidebar-trigger.active {
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        background: #f8fafc;
+        color: #0f172a;
         transform: translateX(-4px);
+        box-shadow: 
+          0 4px 12px rgba(0, 0, 0, 0.08),
+          0 0 1px rgba(0, 0, 0, 0.1);
+      }
+      
+      /* 深色模式下的按钮样式 */
+      @media (prefers-color-scheme: dark) {
+        .sidebar-trigger {
+          background: rgba(30, 41, 59, 0.8);
+          color: #94a3b8;
+          border-left: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .sidebar-trigger:hover {
+          background: rgba(30, 41, 59, 0.95);
+          color: #cbd5e1;
+        }
+        
+        .sidebar-trigger.active {
+          background: #1e293b;
+          color: #f8fafc;
+        }
       }
       
       /* 触发按钮标签 */
@@ -108,17 +136,18 @@
         right: 100%;
         top: 50%;
         transform: translateY(-50%);
-        background: rgba(0, 0, 0, 0.8);
+        background: rgba(15, 23, 42, 0.75);
         color: white;
-        padding: 6px 12px;
+        padding: 4px 10px;
         border-radius: 6px;
         font-size: 12px;
         font-weight: 500;
         white-space: nowrap;
         opacity: 0;
         pointer-events: none;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
         margin-right: 8px;
+        backdrop-filter: blur(4px);
       }
       
       .sidebar-trigger:hover::before {
@@ -134,8 +163,8 @@
         height: 100vh;
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(20px);
-        border-left: 1px solid rgba(0, 0, 0, 0.1);
-        box-shadow: -4px 0 24px rgba(0, 0, 0, 0.1);
+        border-left: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: -4px 0 24px rgba(0, 0, 0, 0.06);
         transform: translateX(100%);
         transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         z-index: 1001;
@@ -154,11 +183,11 @@
         justify-content: space-between;
         margin-bottom: 24px;
         padding-bottom: 16px;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
       }
       
       .sidebar-title {
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 600;
         color: #1f2937;
         display: flex;
@@ -167,8 +196,8 @@
       }
       
       .sidebar-close {
-        width: 32px;
-        height: 32px;
+        width: 30px;
+        height: 30px;
         background: #f8fafc;
         border: 1px solid #e2e8f0;
         border-radius: 8px;
@@ -193,11 +222,12 @@
         left: 0;
         width: 100vw;
         height: 100vh;
-        background: rgba(0, 0, 0, 0.3);
+        background: rgba(0, 0, 0, 0.2);
         opacity: 0;
         visibility: hidden;
         transition: all 0.3s ease;
         z-index: 1000;
+        backdrop-filter: blur(2px);
       }
       
       .sidebar-overlay.visible {
@@ -208,31 +238,31 @@
       /* 组件卡片样式 */
       .widget-card {
         background: #ffffff;
-        border: 1px solid rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(0, 0, 0, 0.04);
         border-radius: 16px;
         padding: 24px;
         box-shadow: 
-          0 1px 3px rgba(0, 0, 0, 0.05),
-          0 4px 12px rgba(0, 0, 0, 0.04);
+          0 1px 3px rgba(0, 0, 0, 0.02),
+          0 4px 12px rgba(0, 0, 0, 0.02);
         margin-bottom: 20px;
         transition: all 0.3s ease;
       }
       
       .widget-card:hover {
         box-shadow: 
-          0 4px 8px rgba(0, 0, 0, 0.08),
-          0 8px 20px rgba(0, 0, 0, 0.06);
+          0 4px 8px rgba(0, 0, 0, 0.04),
+          0 8px 20px rgba(0, 0, 0, 0.03);
       }
       
       /* 每日一句卡片样式 */
       .quote-card {
         background: #ffffff;
-        border: 1px solid rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(0, 0, 0, 0.04);
         border-radius: 16px;
         padding: 24px;
         box-shadow: 
-          0 1px 3px rgba(0, 0, 0, 0.05),
-          0 4px 12px rgba(0, 0, 0, 0.04);
+          0 1px 3px rgba(0, 0, 0, 0.02),
+          0 4px 12px rgba(0, 0, 0, 0.02);
         margin-bottom: 20px;
         transition: all 0.3s ease;
         overflow: hidden;
@@ -241,8 +271,8 @@
       
       .quote-card:hover {
         box-shadow: 
-          0 4px 8px rgba(0, 0, 0, 0.08),
-          0 8px 20px rgba(0, 0, 0, 0.06);
+          0 4px 8px rgba(0, 0, 0, 0.04),
+          0 8px 20px rgba(0, 0, 0, 0.03);
       }
       
       /* 背景图片版本 */
@@ -285,7 +315,7 @@
       .quote-brand, .weather-brand {
         font-size: 13px;
         font-weight: 600;
-        color: #6366f1;
+        color: #64748b;
         display: flex;
         align-items: center;
         gap: 6px;
@@ -323,7 +353,7 @@
         top: -4px;
         font-size: 24px;
         font-weight: 700;
-        color: #6366f1;
+        color: #64748b;
         line-height: 1;
       }
       
@@ -470,7 +500,7 @@
         font-weight: 500;
       }
       
-      /* 控制按钮 */
+      /* 控制按钮 - 现代简约风格 */
       .quote-controls, .weather-controls {
         display: flex;
         justify-content: space-between;
@@ -483,21 +513,22 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-        border: none;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
         padding: 8px 12px;
-        border-radius: 10px;
+        border-radius: 8px;
         cursor: pointer;
         font-size: 12px;
-        font-weight: 600;
-        color: white;
+        font-weight: 500;
+        color: #475569;
         transition: all 0.2s ease;
-        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
       }
       
       .audio-btn:hover, .refresh-btn:hover {
+        background: #e2e8f0;
+        border-color: #cbd5e1;
+        color: #334155;
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
       }
       
       .audio-btn:active, .refresh-btn:active {
@@ -508,7 +539,7 @@
         background: rgba(255, 255, 255, 0.2);
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.3);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        color: white;
       }
       
       .nav-controls {
@@ -517,8 +548,8 @@
       }
       
       .nav-btn {
-        width: 32px;
-        height: 32px;
+        width: 30px;
+        height: 30px;
         background: #f8fafc;
         border: 1px solid #e2e8f0;
         border-radius: 8px;
@@ -569,7 +600,7 @@
         width: 32px;
         height: 32px;
         border: 3px solid #f3f4f6;
-        border-top: 3px solid #6366f1;
+        border-top: 3px solid #64748b;
         border-radius: 50%;
         animation: spin 1s linear infinite;
       }
@@ -605,20 +636,20 @@
       }
       
       .retry-btn {
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        border: none;
-        color: white;
+        background: #fee2e2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
         padding: 8px 16px;
         border-radius: 8px;
         cursor: pointer;
         font-size: 12px;
-        font-weight: 600;
+        font-weight: 500;
         transition: all 0.2s ease;
       }
       
       .retry-btn:hover {
+        background: #fecaca;
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
       }
       
       /* 图标样式 */
@@ -638,62 +669,73 @@
       /* 深色模式支持 */
       @media (prefers-color-scheme: dark) {
         .sidebar-panel {
-          background: rgba(31, 41, 55, 0.95);
-          border-left-color: rgba(255, 255, 255, 0.1);
+          background: rgba(15, 23, 42, 0.95);
+          border-left-color: rgba(255, 255, 255, 0.05);
         }
         
         .sidebar-title {
-          color: #f9fafb;
+          color: #f8fafc;
         }
         
         .sidebar-close {
-          background: #374151;
-          border-color: #4b5563;
-          color: #d1d5db;
+          background: #1e293b;
+          border-color: #334155;
+          color: #94a3b8;
         }
         
         .sidebar-close:hover {
-          background: #4b5563;
-          border-color: #6b7280;
-          color: #f9fafb;
+          background: #334155;
+          border-color: #475569;
+          color: #e2e8f0;
         }
         
         .widget-card:not(.with-image), .quote-card:not(.with-image) {
-          background: #1f2937;
-          border-color: rgba(255, 255, 255, 0.1);
-          color: #f9fafb;
+          background: #1e293b;
+          border-color: rgba(255, 255, 255, 0.05);
+          color: #f8fafc;
         }
         
         .quote-card:not(.with-image) .quote-text {
-          color: #f9fafb;
+          color: #f8fafc;
         }
         
         .quote-card:not(.with-image) .quote-translation {
-          color: #d1d5db;
+          color: #cbd5e1;
         }
         
         .weather-temp, .weather-city, .weather-detail-value {
-          color: #f9fafb;
+          color: #f8fafc;
         }
         
         .weather-desc, .weather-detail-label, .forecast-date, .forecast-temp {
-          color: #d1d5db;
+          color: #cbd5e1;
         }
         
         .weather-detail-item {
-          background: #374151;
+          background: #334155;
         }
         
-        .quote-card:not(.with-image) .nav-btn {
-          background: #374151;
-          border-color: #4b5563;
-          color: #d1d5db;
+        .audio-btn, .refresh-btn {
+          background: #334155;
+          border-color: #475569;
+          color: #cbd5e1;
         }
         
-        .quote-card:not(.with-image) .nav-btn:hover {
-          background: #4b5563;
-          border-color: #6b7280;
-          color: #f9fafb;
+        .audio-btn:hover, .refresh-btn:hover {
+          background: #475569;
+          color: #f1f5f9;
+        }
+        
+        .nav-btn {
+          background: #334155;
+          border-color: #475569;
+          color: #cbd5e1;
+        }
+        
+        .nav-btn:hover {
+          background: #475569;
+          border-color: #64748b;
+          color: #f1f5f9;
         }
       }
       
