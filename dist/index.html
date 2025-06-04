@@ -256,15 +256,23 @@
           0 8px 20px rgba(0, 0, 0, 0.03);
       }
       
-      /* 天气动画背景容器 */
-      .weather-animation-bg {
+      /* 天气动画容器 */
+      .weather-animation-container {
         position: absolute;
         top: 0;
         left: 0;
-        right: 0;
-        bottom: 0;
+        width: 100%;
+        height: 200px;
         overflow: hidden;
-        z-index: 1;
+      }
+      
+      /* 天气动画画布 */
+      .weather-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
       }
       
       /* 天气内容层 */
@@ -272,217 +280,57 @@
         position: relative;
         z-index: 2;
         padding: 24px;
+        padding-top: 200px;
         background: rgba(255, 255, 255, 0.9);
         backdrop-filter: blur(10px);
       }
       
-      /* 晴天动画 */
-      .sunny-bg {
-        background: linear-gradient(135deg, #87CEEB 0%, #98D8E8 50%, #F0E68C 100%);
-      }
-      
-      .sun {
+      /* 季节主题选择器 */
+      .season-selector {
         position: absolute;
-        top: 20px;
-        right: 20px;
-        width: 60px;
-        height: 60px;
-        background: radial-gradient(circle, #FFD700 0%, #FFA500 70%);
-        border-radius: 50%;
-        animation: sunRotate 20s linear infinite;
-        box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
-      }
-      
-      .sun::before {
-        content: '';
-        position: absolute;
-        top: -10px;
-        left: -10px;
-        right: -10px;
-        bottom: -10px;
-        background: radial-gradient(circle, transparent 60%, rgba(255, 215, 0, 0.1) 70%);
-        border-radius: 50%;
-        animation: sunGlow 3s ease-in-out infinite alternate;
-      }
-      
-      @keyframes sunRotate {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-      }
-      
-      @keyframes sunGlow {
-        from { opacity: 0.5; }
-        to { opacity: 1; }
-      }
-      
-      /* 多云动画 */
-      .cloudy-bg {
-        background: linear-gradient(135deg, #B0C4DE 0%, #D3D3D3 50%, #F5F5F5 100%);
-      }
-      
-      .cloud {
-        position: absolute;
-        background: rgba(255, 255, 255, 0.8);
-        border-radius: 50px;
-        opacity: 0.8;
-      }
-      
-      .cloud::before,
-      .cloud::after {
-        content: '';
-        position: absolute;
-        background: rgba(255, 255, 255, 0.8);
-        border-radius: 50px;
-      }
-      
-      .cloud1 {
-        width: 80px;
-        height: 30px;
-        top: 20px;
-        left: 20px;
-        animation: cloudFloat1 15s ease-in-out infinite;
-      }
-      
-      .cloud1::before {
-        width: 40px;
-        height: 40px;
-        top: -20px;
-        left: 10px;
-      }
-      
-      .cloud1::after {
-        width: 60px;
-        height: 35px;
-        top: -15px;
+        top: 10px;
         right: 10px;
+        z-index: 10;
+        display: flex;
+        gap: 5px;
       }
       
-      .cloud2 {
-        width: 60px;
-        height: 25px;
-        top: 60px;
-        right: 30px;
-        animation: cloudFloat2 12s ease-in-out infinite reverse;
+      .season-btn {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        opacity: 0.6;
       }
       
-      .cloud2::before {
-        width: 35px;
-        height: 35px;
-        top: -18px;
-        left: 8px;
+      .season-btn:hover {
+        opacity: 0.8;
+        transform: scale(1.1);
       }
       
-      .cloud2::after {
-        width: 45px;
-        height: 30px;
-        top: -12px;
-        right: 8px;
+      .season-btn.active {
+        opacity: 1;
+        transform: scale(1.1);
+        border-color: white;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
       }
       
-      @keyframes cloudFloat1 {
-        0%, 100% { transform: translateX(0px); }
-        50% { transform: translateX(20px); }
+      .season-spring {
+        background: linear-gradient(135deg, #a8e063, #56ab2f);
       }
       
-      @keyframes cloudFloat2 {
-        0%, 100% { transform: translateX(0px); }
-        50% { transform: translateX(-15px); }
+      .season-summer {
+        background: linear-gradient(135deg, #f2994a, #f2c94c);
       }
       
-      /* 雨天动画 */
-      .rainy-bg {
-        background: linear-gradient(135deg, #4682B4 0%, #708090 50%, #2F4F4F 100%);
+      .season-autumn {
+        background: linear-gradient(135deg, #e65c00, #f9d423);
       }
       
-      .rain-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        overflow: hidden;
-      }
-      
-      .raindrop {
-        position: absolute;
-        width: 2px;
-        background: linear-gradient(to bottom, transparent, rgba(173, 216, 230, 0.8), transparent);
-        animation: rainFall linear infinite;
-      }
-      
-      @keyframes rainFall {
-        from {
-          transform: translateY(-100px);
-          opacity: 1;
-        }
-        to {
-          transform: translateY(300px);
-          opacity: 0;
-        }
-      }
-      
-      /* 雪天动画 */
-      .snowy-bg {
-        background: linear-gradient(135deg, #E6E6FA 0%, #F0F8FF 50%, #FFFAFA 100%);
-      }
-      
-      .snow-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        overflow: hidden;
-      }
-      
-      .snowflake {
-        position: absolute;
-        color: rgba(255, 255, 255, 0.8);
-        font-size: 14px;
-        animation: snowFall linear infinite;
-      }
-      
-      @keyframes snowFall {
-        from {
-          transform: translateY(-100px) rotate(0deg);
-          opacity: 1;
-        }
-        to {
-          transform: translateY(300px) rotate(360deg);
-          opacity: 0;
-        }
-      }
-      
-      /* 阴天动画 */
-      .overcast-bg {
-        background: linear-gradient(135deg, #696969 0%, #A9A9A9 50%, #D3D3D3 100%);
-      }
-      
-      /* 雾天动画 */
-      .foggy-bg {
-        background: linear-gradient(135deg, #F5F5F5 0%, #DCDCDC 50%, #C0C0C0 100%);
-      }
-      
-      .fog {
-        position: absolute;
-        width: 100%;
-        height: 40px;
-        background: linear-gradient(90deg, 
-          transparent 0%, 
-          rgba(255, 255, 255, 0.3) 25%, 
-          rgba(255, 255, 255, 0.5) 50%, 
-          rgba(255, 255, 255, 0.3) 75%, 
-          transparent 100%);
-        animation: fogMove 8s ease-in-out infinite;
-      }
-      
-      .fog:nth-child(1) { top: 20px; animation-delay: 0s; }
-      .fog:nth-child(2) { top: 60px; animation-delay: 2s; }
-      .fog:nth-child(3) { top: 100px; animation-delay: 4s; }
-      
-      @keyframes fogMove {
-        0%, 100% { transform: translateX(-50px); opacity: 0.3; }
-        50% { transform: translateX(50px); opacity: 0.7; }
+      .season-winter {
+        background: linear-gradient(135deg, #8e9eab, #eef2f3);
       }
       
       /* 每日一句卡片样式 */
@@ -990,13 +838,6 @@
           padding: 20px;
         }
       }
-      
-      /* 性能优化 - 减少动画复杂度 */
-      @media (prefers-reduced-motion: reduce) {
-        .sun, .cloud1, .cloud2, .raindrop, .snowflake, .fog {
-          animation: none;
-        }
-      }
     </style>
   </head>
 
@@ -1235,117 +1076,554 @@
       };
 
       // 天气动画组件
-      const WeatherAnimation = ({ weatherType }) => {
-        const createRaindrops = () => {
-          const raindrops = [];
-          for (let i = 0; i < 50; i++) {
-            const delay = Math.random() * 2;
-            const duration = 1 + Math.random() * 0.5;
-            const left = Math.random() * 100;
-            const height = 20 + Math.random() * 30;
-            
-            raindrops.push(
-              React.createElement('div', {
-                key: i,
-                className: 'raindrop',
-                style: {
-                  left: `${left}%`,
-                  height: `${height}px`,
-                  animationDelay: `${delay}s`,
-                  animationDuration: `${duration}s`
-                }
-              })
-            );
-          }
-          return raindrops;
-        };
-
-        const createSnowflakes = () => {
-          const snowflakes = [];
-          const symbols = ['❄', '❅', '❆'];
+      const WeatherAnimation = ({ weatherType, season }) => {
+        const canvasRef = useRef(null);
+        const animationRef = useRef(null);
+        const [canvasContext, setCanvasContext] = useState(null);
+        const [canvasWidth, setCanvasWidth] = useState(0);
+        const [canvasHeight, setCanvasHeight] = useState(0);
+        
+        // 粒子系统
+        const particlesRef = useRef([]);
+        
+        // 初始化画布
+        useEffect(() => {
+          if (!canvasRef.current) return;
           
-          for (let i = 0; i < 30; i++) {
-            const delay = Math.random() * 3;
-            const duration = 3 + Math.random() * 2;
-            const left = Math.random() * 100;
-            const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+          const canvas = canvasRef.current;
+          const ctx = canvas.getContext('2d');
+          
+          // 设置画布尺寸
+          const resizeCanvas = () => {
+            const container = canvas.parentElement;
+            const width = container.clientWidth;
+            const height = container.clientHeight;
             
-            snowflakes.push(
-              React.createElement('div', {
-                key: i,
-                className: 'snowflake',
-                style: {
-                  left: `${left}%`,
-                  animationDelay: `${delay}s`,
-                  animationDuration: `${duration}s`
-                }
-              }, symbol)
-            );
+            canvas.width = width;
+            canvas.height = height;
+            
+            setCanvasWidth(width);
+            setCanvasHeight(height);
+          };
+          
+          resizeCanvas();
+          setCanvasContext(ctx);
+          
+          // 监听窗口大小变化
+          window.addEventListener('resize', resizeCanvas);
+          
+          return () => {
+            window.removeEventListener('resize', resizeCanvas);
+            if (animationRef.current) {
+              cancelAnimationFrame(animationRef.current);
+            }
+          };
+        }, []);
+        
+        // 根据季节获取背景颜色
+        const getSeasonBackground = () => {
+          switch (season) {
+            case 'spring':
+              return {
+                gradient: ['#a8e063', '#56ab2f'],
+                cloudColor: 'rgba(255, 255, 255, 0.9)'
+              };
+            case 'summer':
+              return {
+                gradient: ['#f2994a', '#f2c94c'],
+                cloudColor: 'rgba(255, 255, 255, 0.85)'
+              };
+            case 'autumn':
+              return {
+                gradient: ['#e65c00', '#f9d423'],
+                cloudColor: 'rgba(255, 255, 255, 0.8)'
+              };
+            case 'winter':
+              return {
+                gradient: ['#8e9eab', '#eef2f3'],
+                cloudColor: 'rgba(255, 255, 255, 0.95)'
+              };
+            default:
+              return {
+                gradient: ['#87CEEB', '#98D8E8'],
+                cloudColor: 'rgba(255, 255, 255, 0.9)'
+              };
           }
-          return snowflakes;
         };
-
-        const getAnimationContent = () => {
+        
+        // 初始化粒子
+        const initParticles = () => {
+          particlesRef.current = [];
+          
           switch (weatherType) {
             case '晴':
-              return [
-                React.createElement('div', { key: 'sun', className: 'sun' })
-              ];
-            
+              // 阳光粒子
+              for (let i = 0; i < 50; i++) {
+                particlesRef.current.push({
+                  x: Math.random() * canvasWidth,
+                  y: Math.random() * canvasHeight,
+                  size: 1 + Math.random() * 2,
+                  speedX: (Math.random() - 0.5) * 0.5,
+                  speedY: (Math.random() - 0.5) * 0.5,
+                  opacity: 0.3 + Math.random() * 0.7,
+                  color: season === 'winter' ? '#ffffff' : '#ffff00'
+                });
+              }
+              break;
+              
             case '多云':
-              return [
-                React.createElement('div', { key: 'cloud1', className: 'cloud cloud1' }),
-                React.createElement('div', { key: 'cloud2', className: 'cloud cloud2' })
-              ];
-            
+              // 不需要粒子
+              break;
+              
             case '小雨':
             case '中雨':
             case '大雨':
-              return [
-                React.createElement('div', { key: 'rain', className: 'rain-container' }, createRaindrops())
-              ];
-            
+              // 雨滴粒子
+              const rainCount = weatherType === '小雨' ? 80 : weatherType === '中雨' ? 150 : 250;
+              const rainSpeed = weatherType === '小雨' ? 10 : weatherType === '中雨' ? 14 : 18;
+              
+              for (let i = 0; i < rainCount; i++) {
+                particlesRef.current.push({
+                  x: Math.random() * canvasWidth,
+                  y: Math.random() * canvasHeight - canvasHeight,
+                  size: weatherType === '大雨' ? 1.5 + Math.random() * 1.5 : 1 + Math.random(),
+                  speedX: 0.5,
+                  speedY: 5 + Math.random() * rainSpeed,
+                  opacity: 0.6 + Math.random() * 0.4,
+                  length: weatherType === '大雨' ? 15 + Math.random() * 15 : 10 + Math.random() * 10
+                });
+              }
+              break;
+              
             case '雪':
             case '小雪':
             case '大雪':
-              return [
-                React.createElement('div', { key: 'snow', className: 'snow-container' }, createSnowflakes())
-              ];
-            
+              // 雪花粒子
+              const snowCount = weatherType === '小雪' ? 50 : weatherType === '雪' ? 100 : 200;
+              
+              for (let i = 0; i < snowCount; i++) {
+                particlesRef.current.push({
+                  x: Math.random() * canvasWidth,
+                  y: Math.random() * canvasHeight - canvasHeight,
+                  size: 2 + Math.random() * 3,
+                  speedX: (Math.random() - 0.5) * 1.5,
+                  speedY: 1 + Math.random() * 2,
+                  opacity: 0.7 + Math.random() * 0.3,
+                  rotation: Math.random() * 360,
+                  rotationSpeed: (Math.random() - 0.5) * 2
+                });
+              }
+              break;
+              
             case '雾':
-              return [
-                React.createElement('div', { key: 'fog1', className: 'fog' }),
-                React.createElement('div', { key: 'fog2', className: 'fog' }),
-                React.createElement('div', { key: 'fog3', className: 'fog' })
-              ];
-            
+              // 雾气粒子
+              for (let i = 0; i < 20; i++) {
+                particlesRef.current.push({
+                  x: Math.random() * canvasWidth,
+                  y: 20 + Math.random() * (canvasHeight - 40),
+                  width: 100 + Math.random() * 200,
+                  height: 10 + Math.random() * 20,
+                  speedX: (Math.random() - 0.5) * 0.5,
+                  opacity: 0.1 + Math.random() * 0.2
+                });
+              }
+              break;
+              
             default:
-              return [
-                React.createElement('div', { key: 'cloud1', className: 'cloud cloud1' }),
-                React.createElement('div', { key: 'cloud2', className: 'cloud cloud2' })
-              ];
+              // 默认多云
+              break;
           }
         };
-
-        const getBackgroundClass = () => {
+        
+        // 绘制背景
+        const drawBackground = () => {
+          if (!canvasContext) return;
+          
+          const { gradient } = getSeasonBackground();
+          
+          const grd = canvasContext.createLinearGradient(0, 0, canvasWidth, canvasHeight);
+          grd.addColorStop(0, gradient[0]);
+          grd.addColorStop(1, gradient[1]);
+          
+          canvasContext.fillStyle = grd;
+          canvasContext.fillRect(0, 0, canvasWidth, canvasHeight);
+        };
+        
+        // 绘制太阳
+        const drawSun = () => {
+          if (!canvasContext) return;
+          
+          const centerX = canvasWidth * 0.8;
+          const centerY = canvasHeight * 0.3;
+          const radius = 30;
+          
+          // 绘制光晕
+          const time = Date.now() * 0.001;
+          const glowSize = radius * (1.5 + Math.sin(time) * 0.2);
+          
+          const gradient = canvasContext.createRadialGradient(
+            centerX, centerY, radius * 0.7,
+            centerX, centerY, glowSize
+          );
+          
+          gradient.addColorStop(0, 'rgba(255, 215, 0, 0.8)');
+          gradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+          
+          canvasContext.fillStyle = gradient;
+          canvasContext.beginPath();
+          canvasContext.arc(centerX, centerY, glowSize, 0, Math.PI * 2);
+          canvasContext.fill();
+          
+          // 绘制太阳本体
+          const sunGradient = canvasContext.createRadialGradient(
+            centerX, centerY, 0,
+            centerX, centerY, radius
+          );
+          
+          sunGradient.addColorStop(0, '#FFF176');
+          sunGradient.addColorStop(1, '#FFD700');
+          
+          canvasContext.fillStyle = sunGradient;
+          canvasContext.beginPath();
+          canvasContext.arc(centerX, centerY, radius, 0, Math.PI * 2);
+          canvasContext.fill();
+          
+          // 绘制太阳光芒
+          canvasContext.save();
+          canvasContext.translate(centerX, centerY);
+          canvasContext.rotate(time);
+          
+          const rayCount = 12;
+          const rayLength = radius * 0.7;
+          
+          canvasContext.strokeStyle = 'rgba(255, 215, 0, 0.6)';
+          canvasContext.lineWidth = 2;
+          
+          for (let i = 0; i < rayCount; i++) {
+            const angle = (i / rayCount) * Math.PI * 2;
+            
+            canvasContext.beginPath();
+            canvasContext.moveTo(radius * 1.2 * Math.cos(angle), radius * 1.2 * Math.sin(angle));
+            canvasContext.lineTo((radius + rayLength) * Math.cos(angle), (radius + rayLength) * Math.sin(angle));
+            canvasContext.stroke();
+          }
+          
+          canvasContext.restore();
+        };
+        
+        // 绘制云朵
+        const drawCloud = (x, y, width, height, time) => {
+          if (!canvasContext) return;
+          
+          const { cloudColor } = getSeasonBackground();
+          
+          // 云朵漂浮效果
+          const offsetX = Math.sin(time * 0.5) * 5;
+          const offsetY = Math.sin(time * 0.3) * 3;
+          
+          x += offsetX;
+          y += offsetY;
+          
+          canvasContext.fillStyle = cloudColor;
+          
+          // 绘制云朵主体
+          canvasContext.beginPath();
+          canvasContext.arc(x + width * 0.3, y + height * 0.5, height * 0.5, 0, Math.PI * 2);
+          canvasContext.arc(x + width * 0.7, y + height * 0.5, height * 0.6, 0, Math.PI * 2);
+          canvasContext.arc(x + width * 0.5, y + height * 0.3, height * 0.7, 0, Math.PI * 2);
+          canvasContext.fill();
+        };
+        
+        // 绘制多云
+        const drawCloudy = () => {
+          if (!canvasContext) return;
+          
+          const time = Date.now() * 0.001;
+          
+          // 绘制多个云朵
+          drawCloud(canvasWidth * 0.1, canvasHeight * 0.2, 100, 40, time);
+          drawCloud(canvasWidth * 0.5, canvasHeight * 0.3, 120, 50, time + 1);
+          drawCloud(canvasWidth * 0.7, canvasHeight * 0.15, 80, 30, time + 2);
+          drawCloud(canvasWidth * 0.3, canvasHeight * 0.4, 90, 35, time + 3);
+        };
+        
+        // 更新雨滴粒子
+        const updateRainParticles = () => {
+          if (!canvasContext) return;
+          
+          canvasContext.strokeStyle = 'rgba(174, 194, 224, 0.8)';
+          canvasContext.lineWidth = 1;
+          
+          particlesRef.current.forEach((particle, index) => {
+            // 移动雨滴
+            particle.x += particle.speedX;
+            particle.y += particle.speedY;
+            
+            // 绘制雨滴
+            canvasContext.beginPath();
+            canvasContext.moveTo(particle.x, particle.y);
+            canvasContext.lineTo(particle.x - particle.speedX * 2, particle.y - particle.length);
+            canvasContext.globalAlpha = particle.opacity;
+            canvasContext.stroke();
+            canvasContext.globalAlpha = 1;
+            
+            // 如果雨滴超出画布，重置位置
+            if (particle.y > canvasHeight) {
+              particle.y = -10;
+              particle.x = Math.random() * canvasWidth;
+            }
+          });
+        };
+        
+        // 更新雪花粒子
+        const updateSnowParticles = () => {
+          if (!canvasContext) return;
+          
+          canvasContext.fillStyle = '#ffffff';
+          
+          particlesRef.current.forEach((particle, index) => {
+            // 移动雪花
+            particle.x += particle.speedX;
+            particle.y += particle.speedY;
+            particle.rotation += particle.rotationSpeed;
+            
+            // 绘制雪花
+            canvasContext.save();
+            canvasContext.translate(particle.x, particle.y);
+            canvasContext.rotate(particle.rotation * Math.PI / 180);
+            canvasContext.globalAlpha = particle.opacity;
+            
+            // 绘制六角雪花
+            canvasContext.beginPath();
+            for (let i = 0; i < 6; i++) {
+              const angle = (i / 6) * Math.PI * 2;
+              const x = Math.cos(angle) * particle.size;
+              const y = Math.sin(angle) * particle.size;
+              
+              canvasContext.moveTo(0, 0);
+              canvasContext.lineTo(x, y);
+              
+              // 添加分支
+              const branchX = x * 0.7;
+              const branchY = y * 0.7;
+              const branchAngle = angle + Math.PI / 6;
+              const branchLength = particle.size * 0.5;
+              
+              canvasContext.moveTo(branchX, branchY);
+              canvasContext.lineTo(
+                branchX + Math.cos(branchAngle) * branchLength,
+                branchY + Math.sin(branchAngle) * branchLength
+              );
+              
+              const branchAngle2 = angle - Math.PI / 6;
+              canvasContext.moveTo(branchX, branchY);
+              canvasContext.lineTo(
+                branchX + Math.cos(branchAngle2) * branchLength,
+                branchY + Math.sin(branchAngle2) * branchLength
+              );
+            }
+            
+            canvasContext.stroke();
+            canvasContext.globalAlpha = 1;
+            canvasContext.restore();
+            
+            // 如果雪花超出画布，重置位置
+            if (particle.y > canvasHeight) {
+              particle.y = -10;
+              particle.x = Math.random() * canvasWidth;
+              particle.speedX = (Math.random() - 0.5) * 1.5;
+            }
+            
+            // 如果雪花超出左右边界，反弹
+            if (particle.x < 0 || particle.x > canvasWidth) {
+              particle.speedX *= -1;
+            }
+          });
+        };
+        
+        // 更新阳光粒子
+        const updateSunParticles = () => {
+          if (!canvasContext) return;
+          
+          particlesRef.current.forEach((particle, index) => {
+            // 移动粒子
+            particle.x += particle.speedX;
+            particle.y += particle.speedY;
+            
+            // 绘制粒子
+            canvasContext.fillStyle = particle.color;
+            canvasContext.globalAlpha = particle.opacity;
+            canvasContext.beginPath();
+            canvasContext.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+            canvasContext.fill();
+            canvasContext.globalAlpha = 1;
+            
+            // 如果粒子超出画布，重置位置
+            if (particle.x < 0 || particle.x > canvasWidth || particle.y < 0 || particle.y > canvasHeight) {
+              particle.x = Math.random() * canvasWidth;
+              particle.y = Math.random() * canvasHeight;
+            }
+          });
+        };
+        
+        // 更新雾气粒子
+        const updateFogParticles = () => {
+          if (!canvasContext) return;
+          
+          particlesRef.current.forEach((particle, index) => {
+            // 移动雾气
+            particle.x += particle.speedX;
+            
+            // 绘制雾气
+            canvasContext.fillStyle = `rgba(255, 255, 255, ${particle.opacity})`;
+            canvasContext.beginPath();
+            canvasContext.ellipse(
+              particle.x, particle.y,
+              particle.width, particle.height,
+              0, 0, Math.PI * 2
+            );
+            canvasContext.fill();
+            
+            // 如果雾气超出画布，重置位置
+            if (particle.x + particle.width < 0) {
+              particle.x = canvasWidth + particle.width;
+            } else if (particle.x - particle.width > canvasWidth) {
+              particle.x = -particle.width;
+            }
+          });
+        };
+        
+        // 绘制闪电
+        const drawLightning = () => {
+          if (!canvasContext || Math.random() > 0.01) return; // 随机闪电
+          
+          const startX = Math.random() * canvasWidth;
+          const startY = 0;
+          
+          canvasContext.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+          canvasContext.lineWidth = 2 + Math.random() * 2;
+          
+          canvasContext.beginPath();
+          canvasContext.moveTo(startX, startY);
+          
+          let x = startX;
+          let y = startY;
+          
+          // 绘制闪电路径
+          while (y < canvasHeight * 0.8) {
+            x += (Math.random() - 0.5) * 30;
+            y += 10 + Math.random() * 20;
+            
+            canvasContext.lineTo(x, y);
+          }
+          
+          canvasContext.stroke();
+          
+          // 闪电光晕效果
+          canvasContext.save();
+          canvasContext.globalCompositeOperation = 'lighter';
+          canvasContext.shadowColor = 'rgba(255, 255, 255, 0.7)';
+          canvasContext.shadowBlur = 20;
+          canvasContext.stroke();
+          canvasContext.restore();
+          
+          // 闪电消失效果
+          setTimeout(() => {
+            if (canvasContext) {
+              drawBackground();
+              drawCloudy();
+            }
+          }, 100);
+        };
+        
+        // 动画循环
+        const animate = () => {
+          if (!canvasContext) return;
+          
+          // 清除画布
+          canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
+          
+          // 绘制背景
+          drawBackground();
+          
+          // 根据天气类型绘制不同效果
           switch (weatherType) {
-            case '晴': return 'sunny-bg';
-            case '多云': return 'cloudy-bg';
+            case '晴':
+              drawSun();
+              updateSunParticles();
+              break;
+              
+            case '多云':
+              drawCloudy();
+              if (weatherType === '晴转多云') {
+                drawSun();
+              }
+              break;
+              
+            case '阴':
+              drawCloudy();
+              break;
+              
             case '小雨':
             case '中雨':
-            case '大雨': return 'rainy-bg';
+            case '大雨':
+              drawCloudy();
+              updateRainParticles();
+              break;
+              
+            case '雷阵雨':
+              drawCloudy();
+              updateRainParticles();
+              drawLightning();
+              break;
+              
             case '雪':
             case '小雪':
-            case '大雪': return 'snowy-bg';
-            case '阴': return 'overcast-bg';
-            case '雾': return 'foggy-bg';
-            default: return 'cloudy-bg';
+            case '大雪':
+              drawCloudy();
+              updateSnowParticles();
+              break;
+              
+            case '雾':
+              updateFogParticles();
+              break;
+              
+            default:
+              drawCloudy();
+              break;
           }
+          
+          // 继续动画循环
+          animationRef.current = requestAnimationFrame(animate);
         };
-
-        return React.createElement('div', {
-          className: `weather-animation-bg ${getBackgroundClass()}`
-        }, ...getAnimationContent());
+        
+        // 当天气类型或季节变化时，重新初始化粒子和动画
+        useEffect(() => {
+          if (!canvasContext || !canvasWidth || !canvasHeight) return;
+          
+          // 初始化粒子
+          initParticles();
+          
+          // 开始动画
+          if (animationRef.current) {
+            cancelAnimationFrame(animationRef.current);
+          }
+          
+          animationRef.current = requestAnimationFrame(animate);
+          
+          return () => {
+            if (animationRef.current) {
+              cancelAnimationFrame(animationRef.current);
+            }
+          };
+        }, [weatherType, season, canvasContext, canvasWidth, canvasHeight]);
+        
+        return React.createElement('div', { className: 'weather-animation-container' },
+          React.createElement('canvas', {
+            ref: canvasRef,
+            className: 'weather-canvas'
+          })
+        );
       };
 
       // 城市代码映射
@@ -1394,6 +1672,23 @@
         const [error, setError] = useState(null);
         const [isUpdating, setIsUpdating] = useState(false);
         const [cityId, setCityId] = useState('101100101'); // 默认太原
+        const [season, setSeason] = useState('spring'); // 默认春季
+
+        //  自动检测当前季节
+        const detectCurrentSeason = () => {
+          const now = new Date();
+          const month = now.getMonth() + 1; // 月份从0开始
+          
+          if (month >= 3 && month <= 5) {
+            return 'spring'; // 春季 3-5月
+          } else if (month >= 6 && month <= 8) {
+            return 'summer'; // 夏季 6-8月
+          } else if (month >= 9 && month <= 11) {
+            return 'autumn'; // 秋季 9-11月
+          } else {
+            return 'winter'; // 冬季 12-2月
+          }
+        };
 
         // 获取用户位置对应的城市ID
         const getCityIdFromLocation = async () => {
@@ -1517,10 +1812,39 @@
             const detectedCityId = await getCityIdFromLocation();
             setCityId(detectedCityId);
             await fetchWeather(detectedCityId);
+            
+            // 设置当前季节
+            setSeason(detectCurrentSeason());
           };
           
           initWeather();
         }, []);
+
+        // 季节选择器
+        const SeasonSelector = () => {
+          return React.createElement('div', { className: 'season-selector' },
+            React.createElement('button', {
+              className: `season-btn season-spring ${season === 'spring' ? 'active' : ''}`,
+              onClick: () => setSeason('spring'),
+              title: '春季'
+            }),
+            React.createElement('button', {
+              className: `season-btn season-summer ${season === 'summer' ? 'active' : ''}`,
+              onClick: () => setSeason('summer'),
+              title: '夏季'
+            }),
+            React.createElement('button', {
+              className: `season-btn season-autumn ${season === 'autumn' ? 'active' : ''}`,
+              onClick: () => setSeason('autumn'),
+              title: '秋季'
+            }),
+            React.createElement('button', {
+              className: `season-btn season-winter ${season === 'winter' ? 'active' : ''}`,
+              onClick: () => setSeason('winter'),
+              title: '冬季'
+            })
+          );
+        };
 
         if (loading) {
           return React.createElement('div', { className: 'weather-widget' },
@@ -1548,7 +1872,11 @@
         const tomorrow = weather.data.forecast[1];
 
         return React.createElement('div', { className: 'weather-widget' },
-          React.createElement(WeatherAnimation, { weatherType: today.type }),
+          React.createElement(SeasonSelector),
+          React.createElement(WeatherAnimation, { 
+            weatherType: today.type,
+            season: season
+          }),
           React.createElement('div', { 
             className: `weather-content ${isUpdating ? 'updating' : ''}` 
           },
