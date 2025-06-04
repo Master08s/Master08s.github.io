@@ -46,8 +46,8 @@
     <style>
       .daily-quote-container {
         margin: 2rem auto 3rem;
-        max-width: 768px;
-        perspective: 1000px;
+        max-width: 600px;
+        padding: 0 1rem;
       }
       
       /* 移动端隐藏 */
@@ -57,271 +57,203 @@
         }
       }
       
-      .daily-quote {
-        background: linear-gradient(135deg, 
-          rgba(255, 255, 255, 0.95) 0%, 
-          rgba(240, 248, 255, 0.95) 50%, 
-          rgba(230, 240, 255, 0.95) 100%);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 24px;
-        padding: 2rem;
-        box-shadow: 
-          0 20px 40px rgba(0, 0, 0, 0.1),
-          0 8px 16px rgba(0, 0, 0, 0.05),
-          inset 0 1px 0 rgba(255, 255, 255, 0.6);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        overflow: hidden;
+      .daily-quote-card {
         position: relative;
-        transform-style: preserve-3d;
+        width: 100%;
+        height: 300px;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+        cursor: pointer;
       }
       
-      .daily-quote:hover {
-        transform: translateY(-8px) rotateX(2deg);
-        box-shadow: 
-          0 32px 64px rgba(0, 0, 0, 0.15),
-          0 16px 32px rgba(0, 0, 0, 0.1),
-          inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      .daily-quote-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
       }
       
-      .daily-quote::before {
-        content: '';
+      .quote-background {
         position: absolute;
         top: 0;
         left: 0;
-        right: 0;
-        height: 6px;
-        background: linear-gradient(90deg, 
-          #667eea 0%, 
-          #764ba2 25%, 
-          #f093fb 50%, 
-          #f5576c 75%, 
-          #4facfe 100%);
-        background-size: 200% 100%;
-        animation: gradientShift 8s ease-in-out infinite;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        filter: blur(1px);
+        transform: scale(1.1);
       }
       
-      @keyframes gradientShift {
-        0%, 100% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-      }
-      
-      .daily-quote::after {
-        content: '';
+      .quote-overlay {
         position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        pointer-events: none;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 0, 0, 0.4) 0%,
+          rgba(0, 0, 0, 0.2) 50%,
+          rgba(0, 0, 0, 0.3) 100%
+        );
       }
       
-      .daily-quote:hover::after {
-        opacity: 1;
+      .quote-content {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 24px;
+        color: white;
       }
       
       .quote-header {
         display: flex;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        gap: 1rem;
+        justify-content: space-between;
+        align-items: flex-start;
       }
       
-      .quote-title {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        font-size: 1.4rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-      
-      .quote-title-icon {
-        width: 28px;
-        height: 28px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 16px;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      .quote-brand {
+        font-size: 14px;
+        font-weight: 500;
+        opacity: 0.9;
+        letter-spacing: 0.5px;
       }
       
       .quote-date {
-        font-size: 0.95rem;
-        color: #6b7280;
-        margin-left: auto;
-        padding: 0.5rem 1rem;
-        background: rgba(255, 255, 255, 0.7);
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        font-size: 12px;
+        opacity: 0.8;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 4px 12px;
+        border-radius: 12px;
         backdrop-filter: blur(10px);
+      }
+      
+      .quote-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        padding: 20px 0;
+      }
+      
+      .quote-text {
+        font-size: 22px;
+        font-weight: 600;
+        line-height: 1.4;
+        margin-bottom: 16px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        font-style: italic;
+      }
+      
+      .quote-translation {
+        font-size: 16px;
+        font-weight: 400;
+        opacity: 0.95;
+        line-height: 1.5;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
       }
       
       .quote-controls {
         display: flex;
-        gap: 0.75rem;
-        margin-left: 1rem;
+        justify-content: space-between;
+        align-items: center;
       }
       
-      .control-btn {
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        width: 44px;
-        height: 44px;
+      .audio-control {
         display: flex;
         align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        color: #4b5563;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 8px 16px;
+        border-radius: 20px;
         backdrop-filter: blur(10px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        position: relative;
-        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        cursor: pointer;
+        transition: all 0.2s ease;
       }
       
-      .control-btn::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
-        transition: all 0.3s ease;
-        transform: translate(-50%, -50%);
+      .audio-control:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-1px);
       }
       
-      .control-btn:hover::before {
-        width: 100px;
-        height: 100px;
-      }
-      
-      .control-btn:hover {
-        transform: translateY(-2px) scale(1.05);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-color: rgba(102, 126, 234, 0.3);
-      }
-      
-      .control-btn:active {
-        transform: translateY(0) scale(0.98);
-      }
-      
-      .control-btn.playing {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+      .audio-control.playing {
+        background: rgba(255, 255, 255, 0.4);
         animation: pulse 2s infinite;
       }
       
       @keyframes pulse {
-        0%, 100% { box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); }
-        50% { box-shadow: 0 4px 20px rgba(102, 126, 234, 0.5); }
+        0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+        50% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
       }
       
-      .control-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none;
+      .audio-icon {
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
       }
       
-      .quote-content {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-        position: relative;
-      }
-      
-      .quote-text {
-        font-size: 1.4rem;
-        line-height: 1.7;
-        font-style: italic;
-        color: #1f2937;
+      .audio-text {
+        font-size: 14px;
         font-weight: 500;
-        position: relative;
-        padding: 1rem 2rem;
-        text-align: center;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.8) 100%);
-        border-radius: 16px;
+      }
+      
+      .navigation-controls {
+        display: flex;
+        gap: 8px;
+      }
+      
+      .nav-btn {
+        width: 36px;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.2);
         border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
         backdrop-filter: blur(10px);
       }
       
-      .quote-text::before {
-        content: '"';
-        font-size: 4rem;
-        color: #667eea;
-        position: absolute;
-        left: 0.5rem;
-        top: -1rem;
-        font-family: 'Georgia', serif;
-        opacity: 0.7;
-        line-height: 1;
+      .nav-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-1px);
       }
       
-      .quote-text::after {
-        content: '"';
-        font-size: 4rem;
-        color: #764ba2;
-        position: absolute;
-        right: 0.5rem;
-        bottom: -2rem;
-        font-family: 'Georgia', serif;
-        opacity: 0.7;
-        line-height: 1;
+      .nav-btn:active {
+        transform: translateY(0);
       }
       
-      .quote-translation {
-        font-size: 1.1rem;
-        color: #4b5563;
-        text-align: center;
-        font-weight: 400;
-        padding: 1rem;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(243, 244, 246, 0.6) 100%);
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(5px);
+      .nav-icon {
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
       }
       
-      .quote-image {
-        width: 100%;
-        border-radius: 16px;
-        margin-top: 1rem;
-        max-height: 240px;
-        object-fit: cover;
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-        transition: transform 0.3s ease;
-      }
-      
-      .quote-image:hover {
-        transform: scale(1.02);
-      }
-      
-      .loading-container {
-        text-align: center;
-        padding: 3rem;
+      .loading-card {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 1.5rem;
+        justify-content: center;
+        height: 300px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        gap: 16px;
       }
       
       .loading-spinner {
-        width: 48px;
-        height: 48px;
-        border: 4px solid rgba(102, 126, 234, 0.2);
-        border-top: 4px solid #667eea;
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-top: 3px solid white;
         border-radius: 50%;
         animation: spin 1s linear infinite;
       }
@@ -332,70 +264,63 @@
       }
       
       .loading-text {
-        color: #6b7280;
-        font-size: 1.1rem;
+        font-size: 16px;
         font-weight: 500;
       }
       
-      .audio-progress {
-        width: 100%;
-        height: 6px;
-        background: rgba(255, 255, 255, 0.5);
-        border-radius: 3px;
-        margin-top: 1rem;
-        overflow: hidden;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-      
-      .audio-progress-bar {
-        height: 100%;
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        width: 0%;
-        transition: width 0.1s ease;
-        border-radius: 3px;
-        box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
-      }
-      
-      .error-container {
+      .error-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 300px;
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        color: white;
         text-align: center;
-        padding: 2rem;
-        color: #ef4444;
+        gap: 16px;
       }
       
       .error-title {
-        font-size: 1.2rem;
+        font-size: 18px;
         font-weight: 600;
-        margin-bottom: 0.5rem;
       }
       
       .error-message {
-        color: #6b7280;
-        margin-bottom: 1rem;
+        font-size: 14px;
+        opacity: 0.9;
       }
       
-      /* 粒子效果背景 */
-      .particles {
+      .retry-controls {
+        display: flex;
+        gap: 12px;
+        margin-top: 8px;
+      }
+      
+      .retry-btn {
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 14px;
+        backdrop-filter: blur(10px);
+      }
+      
+      .retry-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+      
+      /* 音频进度条 */
+      .audio-progress {
         position: absolute;
-        top: 0;
+        bottom: 0;
         left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        overflow: hidden;
-      }
-      
-      .particle {
-        position: absolute;
-        width: 4px;
-        height: 4px;
-        background: radial-gradient(circle, rgba(102, 126, 234, 0.6) 0%, transparent 70%);
-        border-radius: 50%;
-        animation: float 6s ease-in-out infinite;
-      }
-      
-      @keyframes float {
-        0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.7; }
-        50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+        height: 3px;
+        background: rgba(255, 255, 255, 0.8);
+        transition: width 0.1s ease;
+        border-radius: 0 0 20px 20px;
       }
     </style>
   </head>
@@ -465,31 +390,30 @@
     <script type="text/babel">
       const { useState, useEffect, useRef } = React;
 
-      // 粒子组件
-      const Particles = () => {
-        const particlesRef = useRef(null);
+      // SVG 图标组件
+      const SpeakerIcon = () => (
+        React.createElement('svg', { className: 'audio-icon', viewBox: '0 0 24 24' },
+          React.createElement('path', { d: 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z' })
+        )
+      );
 
-        useEffect(() => {
-          const container = particlesRef.current;
-          if (!container) return;
+      const ChevronLeftIcon = () => (
+        React.createElement('svg', { className: 'nav-icon', viewBox: '0 0 24 24' },
+          React.createElement('path', { d: 'M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z' })
+        )
+      );
 
-          // 创建粒子
-          for (let i = 0; i < 8; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 6 + 's';
-            particle.style.animationDuration = (4 + Math.random() * 4) + 's';
-            container.appendChild(particle);
-          }
+      const ChevronRightIcon = () => (
+        React.createElement('svg', { className: 'nav-icon', viewBox: '0 0 24 24' },
+          React.createElement('path', { d: 'M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z' })
+        )
+      );
 
-          return () => {
-            container.innerHTML = '';
-          };
-        }, []);
-
-        return React.createElement('div', { className: 'particles', ref: particlesRef });
-      };
+      const RefreshIcon = () => (
+        React.createElement('svg', { className: 'nav-icon', viewBox: '0 0 24 24' },
+          React.createElement('path', { d: 'M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z' })
+        )
+      );
 
       // 每日一句组件
       const DailyQuote = () => {
@@ -624,13 +548,12 @@
         // 格式化日期
         const formatDate = (dateString) => {
           const date = new Date(dateString);
-          return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+          return `${date.getMonth() + 1}月${date.getDate()}日`;
         };
 
         if (loading) {
-          return React.createElement('div', { className: 'daily-quote' },
-            React.createElement(Particles),
-            React.createElement('div', { className: 'loading-container' },
+          return React.createElement('div', { className: 'daily-quote-card' },
+            React.createElement('div', { className: 'loading-card' },
               React.createElement('div', { className: 'loading-spinner' }),
               React.createElement('div', { className: 'loading-text' }, 
                 isRandom ? '正在获取随机一句...' : '正在加载每日一句...'
@@ -640,77 +563,80 @@
         }
 
         if (error) {
-          return React.createElement('div', { className: 'daily-quote' },
-            React.createElement(Particles),
-            React.createElement('div', { className: 'quote-header' },
-              React.createElement('div', { className: 'quote-title' },
-                React.createElement('div', { className: 'quote-title-icon' }, '💭'),
-                '每日一句'
-              ),
-              React.createElement('div', { className: 'quote-controls' },
-                React.createElement('button', {
-                  className: 'control-btn',
-                  onClick: () => fetchQuote(getRandomDate(), true),
-                  title: '随机一句'
-                }, '🎲'),
-                React.createElement('button', {
-                  className: 'control-btn',
-                  onClick: () => fetchQuote(),
-                  title: '重试'
-                }, '🔄')
-              )
-            ),
-            React.createElement('div', { className: 'error-container' },
+          return React.createElement('div', { className: 'daily-quote-card' },
+            React.createElement('div', { className: 'error-card' },
               React.createElement('div', { className: 'error-title' }, '加载失败'),
-              React.createElement('div', { className: 'error-message' }, '网络连接可能存在问题，请点击重试')
+              React.createElement('div', { className: 'error-message' }, '网络连接可能存在问题'),
+              React.createElement('div', { className: 'retry-controls' },
+                React.createElement('button', {
+                  className: 'retry-btn',
+                  onClick: () => fetchQuote(getRandomDate(), true)
+                }, '随机一句'),
+                React.createElement('button', {
+                  className: 'retry-btn',
+                  onClick: () => fetchQuote()
+                }, '重试')
+              )
             )
           );
         }
 
-        return React.createElement('div', { className: 'daily-quote' },
-          React.createElement(Particles),
-          React.createElement('div', { className: 'quote-header' },
-            React.createElement('div', { className: 'quote-title' },
-              React.createElement('div', { className: 'quote-title-icon' }, '💭'),
-              isRandom ? '随机一句' : '每日一句'
+        const backgroundImage = quoteData?.picture || '/images/cherry-blossom-bg.png';
+
+        return React.createElement('div', { className: 'daily-quote-card' },
+          React.createElement('div', { 
+            className: 'quote-background',
+            style: { backgroundImage: `url(${backgroundImage})` }
+          }),
+          React.createElement('div', { className: 'quote-overlay' }),
+          React.createElement('div', { className: 'quote-content' },
+            React.createElement('div', { className: 'quote-header' },
+              React.createElement('div', { className: 'quote-brand' }, 
+                isRandom ? '随机每日一句' : '词霸每日一句'
+              ),
+              React.createElement('div', { className: 'quote-date' }, 
+                quoteData ? formatDate(quoteData.dateline) : ''
+              )
             ),
-            React.createElement('div', { className: 'quote-date' }, 
-              quoteData ? formatDate(quoteData.dateline) : ''
+            React.createElement('div', { className: 'quote-main' },
+              React.createElement('div', { className: 'quote-text' }, 
+                `"${quoteData?.content || ''}"`
+              ),
+              React.createElement('div', { className: 'quote-translation' }, 
+                quoteData?.note || ''
+              )
             ),
             React.createElement('div', { className: 'quote-controls' },
-              quoteData?.tts && React.createElement('button', {
-                className: `control-btn ${isPlaying ? 'playing' : ''}`,
-                onClick: toggleAudio,
-                title: isPlaying ? '暂停' : '播放'
-              }, isPlaying ? '⏸️' : '▶️'),
-              React.createElement('button', {
-                className: 'control-btn',
-                onClick: () => fetchQuote(getRandomDate(), true),
-                title: '随机一句'
-              }, '🎲'),
-              React.createElement('button', {
-                className: 'control-btn',
-                onClick: () => fetchQuote(),
-                title: '刷新'
-              }, '🔄')
+              quoteData?.tts && React.createElement('div', {
+                className: `audio-control ${isPlaying ? 'playing' : ''}`,
+                onClick: toggleAudio
+              },
+                React.createElement(SpeakerIcon),
+                React.createElement('span', { className: 'audio-text' }, '朗读')
+              ),
+              React.createElement('div', { className: 'navigation-controls' },
+                React.createElement('button', {
+                  className: 'nav-btn',
+                  onClick: () => fetchQuote(getRandomDate(), true),
+                  title: '随机一句'
+                }, React.createElement(ChevronLeftIcon)),
+                React.createElement('button', {
+                  className: 'nav-btn',
+                  onClick: () => fetchQuote(),
+                  title: '刷新'
+                }, React.createElement(RefreshIcon)),
+                React.createElement('button', {
+                  className: 'nav-btn',
+                  onClick: () => fetchQuote(getRandomDate(), true),
+                  title: '下一句'
+                }, React.createElement(ChevronRightIcon))
+              )
             )
           ),
-          React.createElement('div', { className: 'quote-content' },
-            React.createElement('div', { className: 'quote-text' }, quoteData?.content || ''),
-            React.createElement('div', { className: 'quote-translation' }, quoteData?.note || ''),
-            quoteData?.tts && React.createElement('div', { className: 'audio-progress' },
-              React.createElement('div', { 
-                className: 'audio-progress-bar',
-                style: { width: `${audioProgress}%` }
-              })
-            ),
-            quoteData?.picture && React.createElement('img', {
-              src: quoteData.picture,
-              alt: '每日一句配图',
-              className: 'quote-image',
-              loading: 'lazy'
-            })
-          )
+          audioProgress > 0 && React.createElement('div', {
+            className: 'audio-progress',
+            style: { width: `${audioProgress}%` }
+          })
         );
       };
 
