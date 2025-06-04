@@ -268,7 +268,6 @@
         height: 200px; 
         overflow: hidden;
         z-index: 1;
-        background: transparent; 
       }
       
       /* 天气动画画布 */
@@ -276,7 +275,7 @@
         position: absolute;
         top: 0;
         left: 0;
-        width: 100%;
+        width: 100%; /* Style width/height for layout */
         height: 100%;
         z-index: 2; 
       }
@@ -284,7 +283,7 @@
       /* 天气内容层 */
       .weather-content {
         position: relative;
-        z-index: 3; /* Above animation canvas and lightning flash */
+        z-index: 3; 
         padding: 24px;
         padding-top: 220px; 
         background: rgba(255, 255, 255, 0.9);
@@ -736,7 +735,7 @@
         }
         
         .weather-content {
-          background: rgba(30, 41, 59, 0.9); /* Dark mode content background */
+          background: rgba(30, 41, 59, 0.9); 
         }
         
         .quote-card:not(.with-image) .quote-text {
@@ -798,9 +797,7 @@
       }
       
       @media (prefers-reduced-motion: reduce) {
-        .weather-animation-container {
-           /* Consider disabling Matter.js updates entirely for reduced motion */
-        }
+        /* Consider further disabling Matter.js for reduced motion */
       }
     </style>
   </head>
@@ -902,7 +899,8 @@
 
     <script type="text/babel">
       const { useState, useEffect, useRef } = React;
-      const { Engine, Render, Runner, World, Bodies, Body, Composite, Vector, Common } = Matter; // Added Runner
+      // Ensure all used Matter.js modules are imported
+      const { Engine, Render, Runner, World, Bodies, Body, Composite, Vector, Common, Events } = Matter;
 
       // SVG 图标组件
       const VolumeIcon = () => (
@@ -929,8 +927,8 @@
         )
       );
 
-      // 侧边栏管理器
-      const SidebarManager = () => {
+      // 侧边栏管理器 (omitted for brevity - assumed to be correct from previous versions)
+      const SidebarManager = () => { /* ... same as before ... */
         const [weatherOpen, setWeatherOpen] = useState(false);
         const [quoteOpen, setQuoteOpen] = useState(false);
 
@@ -993,67 +991,68 @@
         );
       };
 
+
       // 天气动画组件 - 使用Matter.js物理引擎
       const WeatherAnimation = ({ weatherType }) => {
         const containerRef = useRef(null);
         const canvasRef = useRef(null);
         const engineRef = useRef(null);
         const renderRef = useRef(null);
-        const runnerRef = useRef(null); // For Matter.Runner
-        const particlesRef = useRef([]);
-        const timeRef = useRef(0);
+        const runnerRef = useRef(null);
+        const particlesRef = useRef([]); // To store references to particle *groups* or special particles
+        const timeRef = useRef(0); // For non-physics based time animations
         const [isLightningFlashing, setIsLightningFlashing] = useState(false);
         
-        const generalWindX = 0.005; // Reduced general wind
+        const generalWindX = 0.002; // Very gentle general wind
 
-        const initPhysicsEngine = () => {
-          if (!containerRef.current || !canvasRef.current) return;
+        // Function to setup Matter.js
+        const setupMatterJS = () => {
+          if (!containerRef.current || !canvasRef.current) {
+            console.error("WeatherAnimation: Container or Canvas ref not available for setup.");
+            return null;
+          }
+          console.log("WeatherAnimation: Setting up Matter.js");
 
+          const currentContainer = containerRef.current;
+          const currentCanvas = canvasRef.current;
+          
           const engine = Engine.create({
             enableSleeping: true,
-            gravity: { x: generalWindX, y: 0.2 }
+            gravity: { x: generalWindX, y: 0.2, scale: 0.001 } // Gravity scale is important
           });
           engineRef.current = engine;
 
           const render = Render.create({
-            element: containerRef.current, // Render into the container
-            canvas: canvasRef.current,    // Use this specific canvas element
+            canvas: currentCanvas,
             engine: engine,
             options: {
-              width: containerRef.current.clientWidth,
-              height: containerRef.current.clientHeight,
+              width: currentContainer.clientWidth,
+              height: currentContainer.clientHeight,
               pixelRatio: window.devicePixelRatio || 1,
-              background: 'transparent',
-              wireframes: false
+              background: 'rgba(0, 255, 0, 0.1)', // TEMP: Greenish transparent background for debugging
+              wireframes: false,
             }
           });
           renderRef.current = render;
           
-          // Create and run a Matter.Runner
           const runner = Runner.create();
           runnerRef.current = runner;
-          Runner.run(runner, engine); // Runs the engine physics simulation
-          Render.run(render);         // Runs the renderer
 
-          // Custom update loop for non-physics animations or frequent particle checks
-          let animationFrameId;
-          const customUpdateLoop = () => {
-            timeRef.current += (1000 / 60) / 1000; // time in seconds
-            updateParticlesNonPhysics(); // For things like cloud drift, sun pulse
-            if (weatherType === '雷阵雨' || weatherType === '大雨') {
-                if (Math.random() < 0.02) createLightning(); // Chance to create lightning
-            }
-            animationFrameId = requestAnimationFrame(customUpdateLoop);
-          };
-          customUpdateLoop();
+          Runner.run(runner, engine);
+          Render.run(render);
+          console.log("WeatherAnimation: Matter.js Engine and Renderer started.");
 
-          return () => { // Cleanup function for useEffect
-            cancelAnimationFrame(animationFrameId);
+          // Initial particle setup
+          initWeatherParticles(engine, render.options);
+
+          // Cleanup function
+          return () => {
+            console.log("WeatherAnimation: Cleaning up Matter.js");
             if (runnerRef.current) Runner.stop(runnerRef.current);
             if (renderRef.current) Render.stop(renderRef.current);
             if (engineRef.current) {
-                Composite.clear(engineRef.current.world, false);
-                Engine.clear(engineRef.current);
+              Composite.clear(engineRef.current.world, false);
+              Engine.clear(engineRef.current);
             }
             engineRef.current = null;
             renderRef.current = null;
@@ -1062,389 +1061,299 @@
           };
         };
         
-        const resizeCanvas = () => {
-            if (!renderRef.current || !containerRef.current || !canvasRef.current) return;
-            const newWidth = containerRef.current.clientWidth;
-            const newHeight = containerRef.current.clientHeight;
-
-            renderRef.current.options.width = newWidth;
-            renderRef.current.options.height = newHeight;
-            renderRef.current.options.pixelRatio = window.devicePixelRatio || 1;
-
-            // Matter.js Render module handles canvas internal sizing based on options.width, options.height, and options.pixelRatio
-            // So, just need to update the options and let Matter.js adjust.
-            // Canvas element style might also need update if its not 100% of container
-            canvasRef.current.style.width = `${newWidth}px`;
-            canvasRef.current.style.height = `${newHeight}px`;
-            
-            // Update bounds for the renderer
-            renderRef.current.bounds.max.x = newWidth;
-            renderRef.current.bounds.max.y = newHeight;
-
-             // If you are manually setting canvas.width/height, you'd do:
-             // canvasRef.current.width = newWidth * (window.devicePixelRatio || 1);
-             // canvasRef.current.height = newHeight * (window.devicePixelRatio || 1);
-             // And ensure render.options.pixelRatio is 1
-        };
-        
-        const clearWorld = () => {
-          if (engineRef.current) {
-            Composite.clear(engineRef.current.world, false); // Clear all bodies, constraints, composites
-            particlesRef.current = []; // Clear our tracking array
-          }
-        };
-        
-        const createRaindrops = () => {
-          if (!engineRef.current || !canvasRef.current) return;
-          const world = engineRef.current.world;
-          const canvasWidth = renderRef.current.options.width;
-          const canvasHeight = renderRef.current.options.height;
-          const dpr = window.devicePixelRatio || 1;
-          const rainCount = weatherType === '小雨' ? 40 : weatherType === '中雨' ? 70 : 120;
+        // Resize handler
+        const handleResize = () => {
+          if (!renderRef.current || !containerRef.current || !engineRef.current) return;
+          console.log("WeatherAnimation: Handling resize.");
+          const currentContainer = containerRef.current;
+          renderRef.current.bounds.max.x = currentContainer.clientWidth;
+          renderRef.current.bounds.max.y = currentContainer.clientHeight;
+          renderRef.current.options.width = currentContainer.clientWidth;
+          renderRef.current.options.height = currentContainer.clientHeight;
+          Render.setPixelRatio(renderRef.current, window.devicePixelRatio || 1);
+          // Canvas style width/height are 100% from CSS, so internal canvas element width/height will be updated by Render.setPixelRatio
           
-          for (let i = 0; i < rainCount; i++) {
-            const x = Math.random() * canvasWidth;
-            const y = Math.random() * -canvasHeight * 0.5; // Start above canvas
-            const length = (Common.random(8, 12)) * (weatherType === '小雨' ? 1 : weatherType === '中雨' ? 1.2 : 1.5);
-            const width = Common.random(1, 1.5) ;
-            
-            const raindrop = Bodies.rectangle(x, y, width, length, {
-              friction: 0.002, restitution: 0, density: 0.01,
-              frictionAir: 0.015, angle: Math.PI / 10, // Slanted
-              render: {
-                fillStyle: `rgba(100, 150, 250, ${0.3 + Math.random() * 0.3})`,
-                strokeStyle: 'transparent'
-              },
-              isSensor: true, // So they don't collide with each other much
-              label: 'raindrop'
-            });
-            Body.setVelocity(raindrop, { x: (Common.random(0.5, 1.5)) + engineRef.current.gravity.x * 50, y: (Common.random(6, 10)) });
-            particlesRef.current.push(raindrop);
-            Composite.add(world, raindrop);
-          }
-        };
-        
-        const createSnowflakes = () => {
-          if (!engineRef.current || !canvasRef.current) return;
-          const world = engineRef.current.world;
-          const canvasWidth = renderRef.current.options.width;
-          const canvasHeight = renderRef.current.options.height;
-          const dpr = window.devicePixelRatio || 1;
-          const snowCount = weatherType === '小雪' ? 20 : weatherType === '雪' ? 40 : 60;
-          
-          for (let i = 0; i < snowCount; i++) {
-            const x = Math.random() * canvasWidth;
-            const y = Math.random() * -canvasHeight * 0.5;
-            const size = Common.random(2, 4);
-            
-            const snowflake = Bodies.circle(x, y, size, { 
-              friction: 0.005, restitution: 0, density: 0.0002,
-              frictionAir: 0.06 + Math.random() * 0.02, // More floaty
-              render: {
-                fillStyle: `rgba(255, 255, 255, ${0.5 + Math.random() * 0.3})`,
-              },
-              isSensor: true,
-              label: 'snowflake',
-              swayPhase: Math.random() * Math.PI * 2 // Custom property for sway
-            });
-            Body.setVelocity(snowflake, { x: (Math.random() - 0.5) * 0.5 + engineRef.current.gravity.x * 30, y: Common.random(0.5, 1.5) });
-            Body.setAngularVelocity(snowflake, (Math.random() - 0.5) * 0.03);
-            particlesRef.current.push(snowflake);
-            Composite.add(world, snowflake);
-          }
+          // Re-initialize particles for new dimensions
+          initWeatherParticles(engineRef.current, renderRef.current.options);
         };
 
-        const createClouds = () => {
-            if (!engineRef.current || !canvasRef.current) return;
-            const world = engineRef.current.world;
-            const canvasWidth = renderRef.current.options.width;
-            const dpr = window.devicePixelRatio || 1;
-            const cloudCount = weatherType === '多云' ? 3 : (weatherType === '阴' ? 4 : 2);
+        // Effect for initial setup and cleanup
+        useEffect(() => {
+          let cleanupFunction = setupMatterJS();
+          window.addEventListener('resize', handleResize);
+          
+          // Custom animation loop for things not tied to physics step (e.g. sun pulse, cloud drift)
+          let animationFrameId;
+          const nonPhysicsLoop = () => {
+            timeRef.current += 1/60; // Approximate time delta
+            updateNonPhysicsParticles();
+            if (weatherType === '雷阵雨' || weatherType === '大雨') {
+                if (Math.random() < 0.015) createLightning(); // Chance for lightning
+            }
+            animationFrameId = requestAnimationFrame(nonPhysicsLoop);
+          };
+          nonPhysicsLoop();
+
+          return () => {
+            window.removeEventListener('resize', handleResize);
+            cancelAnimationFrame(animationFrameId);
+            if (cleanupFunction) cleanupFunction();
+          };
+        }, []); // Empty dependency array: runs once on mount, cleans up on unmount
+
+        // Effect for weather type changes
+        useEffect(() => {
+          if (engineRef.current && renderRef.current) {
+            console.log(`WeatherAnimation: weatherType changed to ${weatherType}. Re-initializing particles.`);
+            initWeatherParticles(engineRef.current, renderRef.current.options);
+          }
+        }, [weatherType]);
+
+
+        const initWeatherParticles = (engine, renderOptions) => {
+            if (!engine || !renderOptions) {
+                console.error("WeatherAnimation: Engine or renderOptions not available for initWeatherParticles.");
+                return;
+            }
+            console.log(`WeatherAnimation: Initializing particles for ${weatherType} with canvas ${renderOptions.width}x${renderOptions.height}`);
             
-            for (let i = 0; i < cloudCount; i++) {
-                const initialX = Common.random(-50, canvasWidth + 50);
-                const y = Common.random(20, 60);
-                const scale = Common.random(0.7, 1.3);
-                const numCircles = Common.random(3, 5);
-                const baseRadius = 20 * scale;
-                
-                let cloudGroup = [];
-                for (let j = 0; j < numCircles; j++) {
-                    const offsetX = (Math.random() - 0.5) * baseRadius * 2;
-                    const offsetY = (Math.random() - 0.5) * baseRadius * 0.5;
-                    const partRadius = baseRadius * Common.random(0.6, 1);
-                    
-                    const cloudPart = Bodies.circle(initialX + offsetX, y + offsetY, partRadius, {
-                        isStatic: true, 
-                        render: {
-                            fillStyle: `rgba(255, 255, 255, ${Common.random(0.6, 0.85)})`,
-                            strokeStyle: 'transparent'
-                        },
-                        label: 'cloud_part' // Keep for potential specific logic
-                    });
-                    cloudGroup.push(cloudPart);
-                }
-                
-                // Add the group as a single particle for easier management in `particlesRef`
-                particlesRef.current.push({
-                    type: 'cloud',
-                    bodies: cloudGroup,
-                    x: initialX, // Store the conceptual center X for drift
-                    y: y,
-                    speed: Common.random(0.05, 0.15) + engineRef.current.gravity.x * 10, // Adjusted for dpr if needed
-                    phase: Math.random() * Math.PI * 2,
-                    initialOffsets: cloudGroup.map(p => ({x: p.position.x - initialX, y: p.position.y - y}))
-                });
-                Composite.add(world, cloudGroup);
+            Composite.clear(engine.world, false); // Clear existing bodies
+            particlesRef.current = []; // Clear custom tracking
+
+            // TEMP: Add a test box
+            const testBox = Bodies.rectangle(renderOptions.width / 2, renderOptions.height / 2, 50, 50, {
+                isStatic: true, render: { fillStyle: 'red' }
+            });
+            Composite.add(engine.world, testBox);
+            console.log("WeatherAnimation: Added test red box.");
+
+            engine.gravity.x = generalWindX;
+            engine.gravity.y = 0.2;
+
+            switch (weatherType) {
+                case '晴': createSun(engine, renderOptions); break;
+                case '多云': createSun(engine, renderOptions); createClouds(engine, renderOptions); break;
+                case '阴': createClouds(engine, renderOptions); engine.gravity.y = 0.15; break;
+                case '小雨': case '中雨': case '大雨':
+                    createClouds(engine, renderOptions); createRaindrops(engine, renderOptions);
+                    engine.gravity.y = weatherType === '大雨' ? 0.28 : (weatherType === '中雨' ? 0.24 : 0.2);
+                    break;
+                case '雷阵雨':
+                    createClouds(engine, renderOptions); createRaindrops(engine, renderOptions);
+                    engine.gravity.x = generalWindX * 1.5; engine.gravity.y = 0.3;
+                    break;
+                case '雪': case '小雪': case '大雪':
+                    createClouds(engine, renderOptions); createSnowflakes(engine, renderOptions);
+                    engine.gravity.y = 0.03; engine.gravity.x = generalWindX * 1.2;
+                    break;
+                case '雾': createFog(engine, renderOptions); engine.gravity.y = 0.005; break;
+                default: createClouds(engine, renderOptions); break;
             }
         };
         
-        const createSun = () => {
-          if (!engineRef.current || !canvasRef.current) return;
-          const world = engineRef.current.world;
-          const canvasWidth = renderRef.current.options.width;
-          const dpr = window.devicePixelRatio || 1;
-          const x = canvasWidth * 0.8;
-          const y = 50 ;
-          const radius = 25;
-          
-          const sun = Bodies.circle(x, y, radius, {
-            isStatic: true,
-            render: { fillStyle: '#FDB813', strokeStyle: 'rgba(255,165,0,0.3)', lineWidth: 2 },
-            label: 'sun'
-          });
-          particlesRef.current.push({type: 'sun', body: sun, phase: 0}); // Track for animation
-          Composite.add(world, sun);
+        const createSun = (engine, renderOptions) => {
+            const sun = Bodies.circle(renderOptions.width * 0.8, renderOptions.height * 0.25, 25, {
+                isStatic: true, render: { fillStyle: '#FDB813' }, label: 'sun'
+            });
+            Composite.add(engine.world, sun);
+            particlesRef.current.push({ type: 'sun', body: sun, phase: Math.random() * Math.PI });
+        };
+
+        const createClouds = (engine, renderOptions) => {
+            const cloudCount = weatherType === '多云' ? 3 : 4;
+            for (let i = 0; i < cloudCount; i++) {
+                const initialX = Common.random(-50, renderOptions.width + 50);
+                const y = Common.random(renderOptions.height * 0.1, renderOptions.height * 0.3);
+                const baseRadius = Common.random(15, 25);
+                let cloudParts = [];
+                let partOffsets = [];
+
+                for (let j = 0; j < Common.random(3,5); j++) {
+                    const offsetX = (Math.random() - 0.5) * baseRadius * 2;
+                    const offsetY = (Math.random() - 0.5) * baseRadius * 0.8;
+                    const partRadius = baseRadius * Common.random(0.7, 1.1);
+                    const cloudPart = Bodies.circle(initialX + offsetX, y + offsetY, partRadius, {
+                        isStatic: true, render: { fillStyle: `rgba(255, 255, 255, ${Common.random(0.6, 0.85)})` }
+                    });
+                    cloudParts.push(cloudPart);
+                    partOffsets.push({x: offsetX, y: offsetY});
+                }
+                Composite.add(engine.world, cloudParts);
+                particlesRef.current.push({
+                    type: 'cloud', bodies: cloudParts, x: initialX, y: y,
+                    speed: Common.random(0.1, 0.3) + engine.gravity.x * 30, // pixels per nonPhysicsLoop tick
+                    phase: Math.random() * Math.PI, initialOffsets: partOffsets
+                });
+            }
+        };
+        
+        const createRaindrops = (engine, renderOptions) => {
+            const count = weatherType === '小雨' ? 40 : weatherType === '中雨' ? 70 : 120;
+            for (let i = 0; i < count; i++) {
+                const x = Math.random() * renderOptions.width;
+                const y = Math.random() * -renderOptions.height * 0.3;
+                const len = Common.random(8, 15) * (weatherType === '大雨' ? 1.2 : 1);
+                const drop = Bodies.rectangle(x, y, 1.5, len, {
+                    frictionAir: 0.01, restitution: 0, angle: Math.PI / 12,
+                    render: { fillStyle: `rgba(135, 206, 250, ${Common.random(0.4, 0.7)})`},
+                    label: 'raindrop'
+                });
+                Body.setVelocity(drop, { x: engine.gravity.x * 40 + Common.random(0,2), y: Common.random(7, 12) });
+                Composite.add(engine.world, drop);
+            }
+        };
+        
+        const createSnowflakes = (engine, renderOptions) => {
+            const count = weatherType === '小雪' ? 25 : weatherType === '雪' ? 50 : 70;
+            for (let i = 0; i < count; i++) {
+                const x = Math.random() * renderOptions.width;
+                const y = Math.random() * -renderOptions.height * 0.3;
+                const size = Common.random(2,4);
+                const flake = Bodies.circle(x, y, size, {
+                    frictionAir: 0.05, restitution: 0, density: 0.0001,
+                    render: { fillStyle: `rgba(255, 255, 255, ${Common.random(0.6, 0.9)})`},
+                    label: 'snowflake', swayPhase: Math.random() * Math.PI * 2
+                });
+                Body.setVelocity(flake, {x: (Math.random()-0.5)*0.5 + engine.gravity.x * 20, y: Common.random(0.5,1.5)});
+                Body.setAngularVelocity(flake, (Math.random()-0.5)*0.02);
+                Composite.add(engine.world, flake);
+            }
+        };
+
+        const createFog = (engine, renderOptions) => {
+            for (let i = 0; i < 5; i++) {
+                const yPos = Common.random(renderOptions.height * 0.5, renderOptions.height * 0.9);
+                const fogPart = Bodies.rectangle(
+                    Common.random(-50, renderOptions.width + 50), yPos,
+                    Common.random(150, 250), Common.random(20, 35), {
+                    isStatic: true, // Fog drift is programmatic
+                    render: {fillStyle: `rgba(200, 210, 220, ${Common.random(0.05, 0.15)})`},
+                    label: 'fog_part' // Individual parts for easier programmatic control
+                });
+                Composite.add(engine.world, fogPart);
+                particlesRef.current.push({
+                    type: 'fog', body: fogPart,
+                    initialY: yPos,
+                    driftSpeed: (Math.random() - 0.5) * 0.2 + engine.gravity.x * 20,
+                    swayPhase: Math.random() * Math.PI * 2
+                });
+            }
         };
 
         const createLightning = () => {
-            if (!engineRef.current || !canvasRef.current) return;
-            const world = engineRef.current.world;
-            const canvasWidth = renderRef.current.options.width;
-            const canvasHeight = renderRef.current.options.height;
-
-            setIsLightningFlashing(true);
-            setTimeout(() => setIsLightningFlashing(false), Common.random(80, 150));
-
-            let currentX = Common.random(canvasWidth * 0.2, canvasWidth * 0.8);
-            let currentY = 0;
-            const segments = [];
-            const numSegmentsMain = Common.random(5, 8);
-
-            const createBoltPath = (startX, startY, numSegs, thickness, isBranch = false) => {
-                let cX = startX;
-                let cY = startY;
-                const boltSegments = [];
-                for (let i = 0; i < numSegs; i++) {
-                    if (cY > canvasHeight * (isBranch ? 0.7 : 1)) break;
-                    const segmentLength = Common.random(20, 50) ;
-                    const angle = Math.PI / 2 + Common.random(-0.3, 0.3); // Mostly downwards
-                    
-                    const nextX = cX + Math.cos(angle) * segmentLength * (Math.random() > 0.5 ? 1 : -1) * 0.5; // Horizontal shift
-                    const nextY = cY + Math.sin(angle) * segmentLength;
-                    
-                    const boltSegment = Bodies.rectangle(
-                        (cX + nextX) / 2, (cY + nextY) / 2,
-                        thickness,
-                        Vector.magnitude(Vector.sub({x:nextX, y:nextY}, {x:cX, y:cY})), // length
-                        {
-                            angle: Vector.angle({x:cX, y:cY}, {x:nextX, y:nextY}) - Math.PI/2,
-                            isStatic: true,
-                            render: { fillStyle: `rgba(255, 255, 220, ${Common.random(0.7, 1)})` },
-                            label: 'lightning_segment'
-                        }
-                    );
-                    boltSegments.push(boltSegment);
-                    
-                    // Chance to branch from main bolt
-                    if (!isBranch && i > 1 && i < numSegs -1 && Math.random() < 0.3) {
-                       boltSegments.push(...createBoltPath(cX, cY, Common.random(3,5), thickness * 0.6, true));
-                    }
-                    cX = nextX;
-                    cY = nextY;
-                }
-                return boltSegments;
-            }
-            
-            const allLightningBolts = createBoltPath(currentX, currentY, numSegmentsMain, Common.random(2,4));
-            Composite.add(world, allLightningBolts);
-            
-            setTimeout(() => {
-                if (engineRef.current && allLightningBolts.length) {
-                    Composite.remove(world, allLightningBolts);
-                }
-            }, Common.random(100, 250));
-        };
-        
-        const createFog = () => {
-          if (!engineRef.current || !canvasRef.current) return;
-          const world = engineRef.current.world;
-          const canvasWidth = renderRef.current.options.width;
-          const canvasHeight = renderRef.current.options.height;
-          const dpr = window.devicePixelRatio || 1;
-          const fogCount = 5;
-
-          for (let i = 0; i < fogCount; i++) {
-            const y = Common.random(canvasHeight * 0.4, canvasHeight * 0.9); 
-            const width = Common.random(150, 250);
-            const height = Common.random(20, 35) ;
-            const fog = Bodies.rectangle(
-              Common.random(-width/2, canvasWidth + width/2), y, width, height, {
-              friction: 0, frictionAir: 0.07 + Math.random()*0.03, density: 0.00001,
-              render: { fillStyle: `rgba(200, 210, 220, ${Common.random(0.1, 0.2)})`, strokeStyle:'transparent' },
-              label: 'fog',
-              // Custom properties for programmatic animation:
-              initialX: Common.random(-width/2, canvasWidth + width/2),
-              initialY: y,
-              driftSpeed: (Math.random() - 0.5) * 0.1 + engineRef.current.gravity.x * 20,
-              swayPhase: Math.random() * Math.PI * 2
-            });
-            // For fog, we let physics handle most horizontal, but might add programmatic sway
-            particlesRef.current.push(fog); // Add to physics simulation
-            Composite.add(world, fog);
-          }
-        };
-
-        // For animations not directly handled by physics updates (e.g. static body pulsing, cloud drift)
-        const updateParticlesNonPhysics = () => {
             if (!engineRef.current || !renderRef.current) return;
-            const canvasWidth = renderRef.current.options.width;
-            const canvasHeight = renderRef.current.options.height;
+            const world = engineRef.current.world;
+            const renderOptions = renderRef.current.options;
+            
+            setIsLightningFlashing(true);
+            setTimeout(() => setIsLightningFlashing(false), Common.random(60, 120));
+
+            const startX = Common.random(renderOptions.width * 0.2, renderOptions.width * 0.8);
+            let currentY = 0;
+            let currentX = startX;
+            const bolts = [];
+
+            for (let i=0; i < Common.random(5,8); i++) {
+                if (currentY > renderOptions.height) break;
+                const segLength = Common.random(30, 60);
+                const angle = Math.PI / 2 + Common.random(-0.4, 0.4); // Mostly downward
+                const nextX = currentX + Math.cos(angle) * segLength * (Math.random() > 0.5 ? 0.3 : -0.3);
+                const nextY = currentY + Math.sin(angle) * segLength;
+                
+                const bolt = Bodies.rectangle(
+                    (currentX + nextX)/2, (currentY + nextY)/2, // midpoint
+                    Common.random(1.5, 3), // thickness
+                    Vector.magnitude(Vector.sub({x: nextX, y: nextY}, {x: currentX, y: currentY})), // length
+                    {
+                        isStatic: true,
+                        angle: Vector.angle({x: currentX, y: currentY}, {x: nextX, y: nextY}) - Math.PI / 2,
+                        render: { fillStyle: `rgba(255, 255, 240, ${Common.random(0.8, 1)})` }
+                    });
+                bolts.push(bolt);
+                currentX = nextX;
+                currentY = nextY;
+            }
+            Composite.add(world, bolts);
+            setTimeout(() => {
+                if(engineRef.current) Composite.remove(world, bolts);
+            }, Common.random(100,200));
+        };
+
+        const updateNonPhysicsParticles = () => {
+            if (!engineRef.current || !renderRef.current) return;
+            const renderOptions = renderRef.current.options;
+            const allBodies = Composite.allBodies(engineRef.current.world);
 
             particlesRef.current.forEach(p => {
-                if (p.label === 'sun' && p.body) { // Check if it's a sun particle object
+                if (p.type === 'sun' && p.body) {
                     p.body.render.opacity = 0.85 + Math.sin(timeRef.current * 1.5 + p.phase) * 0.15;
-                } else if (p.type === 'cloud') { // Check if it's a cloud group object
+                } else if (p.type === 'cloud') {
                     p.x += p.speed;
-                    const verticalSway = Math.sin(timeRef.current * 0.5 + p.phase) * 5;
-                    
+                    const verticalSway = Math.sin(timeRef.current * 0.4 + p.phase) * 4;
                     let minX = Infinity, maxX = -Infinity;
-                    p.bodies.forEach(part => {
-                        if (part.bounds) { // Ensure bounds exist
-                           minX = Math.min(minX, part.bounds.min.x);
-                           maxX = Math.max(maxX, part.bounds.max.x);
+                    p.bodies.forEach(b => { 
+                        if(b.bounds) {
+                            minX = Math.min(minX, b.position.x - (b.bounds.max.x - b.bounds.min.x)/2); // Estimate based on part position
+                            maxX = Math.max(maxX, b.position.x + (b.bounds.max.x - b.bounds.min.x)/2);
                         }
                     });
-                    const cloudWidth = maxX - minX;
+                    const cloudWidthEst = Math.max(50, maxX - minX); // Ensure cloudWidthEst is positive
 
-                    if (p.x - cloudWidth / 2 > canvasWidth && p.speed > 0) { // Cloud moved off right
-                        p.x = -cloudWidth / 2; // Reset to left
-                    } else if (p.x + cloudWidth / 2 < 0 && p.speed < 0) { // Cloud moved off left
-                        p.x = canvasWidth + cloudWidth / 2; // Reset to right
-                    }
+                    if (p.speed > 0 && p.x - cloudWidthEst / 2 > renderOptions.width) p.x = -cloudWidthEst / 2;
+                    else if (p.speed < 0 && p.x + cloudWidthEst / 2 < 0) p.x = renderOptions.width + cloudWidthEst / 2;
 
                     p.bodies.forEach((partBody, index) => {
                         const offset = p.initialOffsets[index];
-                        Body.setPosition(partBody, {
-                            x: p.x + offset.x,
-                            y: p.y + offset.y + verticalSway
-                        });
+                        Body.setPosition(partBody, { x: p.x + offset.x, y: p.y + offset.y + verticalSway });
                     });
-                } else if (p.label === 'raindrop' || p.label === 'snowflake') {
-                    // Resetting particles if they go out of bounds
-                    const particle = p; // p is the body itself
-                    if (particle.position.y > canvasHeight + 20 || particle.position.x < -20 || particle.position.x > canvasWidth + 20) {
-                        const newX = Math.random() * canvasWidth;
-                        const newY = -20; // Reset above the screen
-                        Body.setPosition(particle, { x: newX, y: newY });
-                        if (particle.label === 'raindrop') {
-                            Body.setVelocity(particle, { x: (Common.random(0.5, 1.5)) + engineRef.current.gravity.x * 50, y: (Common.random(6,10)) });
+                } else if (p.type === 'fog' && p.body) {
+                    let newX = p.body.position.x + p.driftSpeed;
+                    const verticalSway = Math.sin(timeRef.current * 0.2 + p.swayPhase) * 0.5;
+                    const fogWidth = p.body.bounds.max.x - p.body.bounds.min.x;
+
+                    if (p.driftSpeed > 0 && newX - fogWidth / 2 > renderOptions.width) newX = -fogWidth / 2;
+                    else if (p.driftSpeed < 0 && newX + fogWidth / 2 < 0) newX = renderOptions.width + fogWidth / 2;
+                    Body.setPosition(p.body, { x: newX, y: p.initialY + verticalSway });
+                }
+            });
+
+            // Physics particle recycling (rain, snow)
+            allBodies.forEach(body => {
+                if (body.label === 'raindrop' || body.label === 'snowflake') {
+                    if (body.position.y > renderOptions.height + 20 || body.position.x < -20 || body.position.x > renderOptions.width + 20) {
+                        Body.setPosition(body, { x: Math.random() * renderOptions.width, y: -20 });
+                        if (body.label === 'raindrop') {
+                           Body.setVelocity(body, { x: engineRef.current.gravity.x * 40 + Common.random(0,2), y: Common.random(7, 12) });
                         } else { // snowflake
-                            Body.setVelocity(particle, { x: (Math.random() - 0.5) * 0.5 + engineRef.current.gravity.x * 30, y: Common.random(0.5,1.5) });
+                           Body.setVelocity(body, {x: (Math.random()-0.5)*0.5 + engineRef.current.gravity.x * 20, y: Common.random(0.5,1.5)});
+                           Body.setAngularVelocity(body, (Math.random()-0.5)*0.02);
                         }
                     }
-                    if (particle.label === 'snowflake') {
-                        const swayForce = Math.sin(timeRef.current * 2 + particle.swayPhase) * 0.00005 * particle.mass;
-                        Body.applyForce(particle, particle.position, { x: swayForce, y: -engineRef.current.gravity.y * particle.mass * 0.1 }); // Gentle upward force to make it float more
+                    if (body.label === 'snowflake' && body.swayPhase !== undefined) { // Ensure custom prop exists
+                        const swayForceX = Math.sin(timeRef.current * 1.5 + body.swayPhase) * 0.00005 * body.mass;
+                        // Apply a slight upward force to make snow float more
+                        Body.applyForce(body, body.position, { x: swayForceX, y: -engineRef.current.gravity.y * body.mass * 0.15 });
                     }
-                } else if (p.label === 'fog') {
-                     const fogBody = p;
-                     if ( (fogBody.driftSpeed > 0 && fogBody.position.x - fogBody.bounds.max.x / 2 > canvasWidth) ||
-                          (fogBody.driftSpeed < 0 && fogBody.position.x + fogBody.bounds.max.x / 2 < 0) ) {
-                         Body.setPosition(fogBody, {
-                            x: fogBody.driftSpeed > 0 ? -fogBody.bounds.max.x / 2 : canvasWidth + fogBody.bounds.max.x / 2,
-                            y: fogBody.initialY + (Math.random() -0.5) * 10
-                         });
-                         Body.setVelocity(fogBody, {x: fogBody.driftSpeed, y: (Math.random()-0.5) * 0.02});
-                     }
-                     const verticalSway = Math.sin(timeRef.current * 0.2 + fogBody.swayPhase) * 0.000005 * fogBody.mass;
-                     Body.applyForce(fogBody, fogBody.position, {x:0, y: verticalSway});
                 }
             });
         };
-        
-        const initWeatherParticles = () => {
-          clearWorld();
-          if (!engineRef.current) return;
-          
-          // Reset gravity for each weather type
-          engineRef.current.gravity.x = generalWindX;
-          engineRef.current.gravity.y = 0.2;    
-
-          switch (weatherType) {
-            case '晴': createSun(); break;
-            case '多云': createSun(); createClouds(); break;
-            case '阴': createClouds(); engineRef.current.gravity.y = 0.15; break; 
-            case '小雨': case '中雨': case '大雨':
-              createClouds(); createRaindrops();
-              engineRef.current.gravity.y = weatherType === '大雨' ? 0.28 : (weatherType === '中雨' ? 0.24 : 0.2);
-              break;
-            case '雷阵雨':
-              createClouds(); createRaindrops(); 
-              engineRef.current.gravity.x = generalWindX * 2; 
-              engineRef.current.gravity.y = 0.3;
-              // Lightning is triggered in updateParticlesNonPhysics
-              break; 
-            case '雪': case '小雪': case '大雪':
-              createClouds(); createSnowflakes();
-              engineRef.current.gravity.y = 0.04; // Snow falls slower
-              engineRef.current.gravity.x = generalWindX * 1.5; // Snow often has more horizontal movement
-              break;
-            case '雾': createFog(); engineRef.current.gravity.y = 0.005; break; 
-            default: createClouds(); break;
-          }
-        };
-        
-        useEffect(() => {
-          const cleanupPhysics = initPhysicsEngine(); // initPhysicsEngine now returns its cleanup
-          const handleResize = () => {
-            resizeCanvas();
-            // Optionally, re-initialize particles if density needs to be maintained for new size
-            // initWeatherParticles(); // This might be too disruptive, or good, depending on effect
-          };
-          window.addEventListener('resize', handleResize);
-          
-          return () => {
-            window.removeEventListener('resize', handleResize);
-            if (cleanupPhysics) cleanupPhysics();
-          };
-        }, []); // Run once on mount
-        
-        useEffect(() => {
-          if (engineRef.current && renderRef.current) { // Ensure engine is initialized
-            initWeatherParticles();
-          }
-        }, [weatherType]); // Re-initialize particles when weatherType changes
         
         return React.createElement('div', {
           ref: containerRef,
           className: `weather-animation-container`,
-          style: { width: '100%', height: '100%' } // Ensure container has dimensions
         },
           React.createElement('canvas', { ref: canvasRef, className: 'weather-canvas' }),
           isLightningFlashing && React.createElement('div', {
             style: {
                 position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                backgroundColor: `rgba(255, 255, 240, ${0.3 + Math.random() * 0.3})`, 
-                zIndex: 10, // Above canvas, below content
-                pointerEvents: 'none',
-                opacity: 1 // CSS transition can handle fade out if desired
+                backgroundColor: `rgba(255, 255, 240, ${Common.random(0.4, 0.7)})`, 
+                zIndex: 5, pointerEvents: 'none',
             }
           })
         );
       };
 
-      const CITY_CODES = {
+      const CITY_CODES = { /* ... same as before ... */
         '北京': '101010100', '上海': '101020100', '广州': '101280101', '深圳': '101280601',
         '杭州': '101210101', '南京': '101190101', '武汉': '101200101', '成都': '101270101',
         '西安': '101110101', '太原': '101100101', '天津': '101030100', '重庆': '101040100',
@@ -1456,7 +1365,7 @@
         '南宁': '101300101', '海口': '101310101', '三亚': '101310201'
       };
 
-      const WeatherWidget = () => {
+      const WeatherWidget = () => { /* ... same as before, ensure YOUR_AMAP_KEY is replaced or geocoding might fail ... */
         const [weather, setWeather] = useState(null);
         const [loading, setLoading] = useState(true);
         const [error, setError] = useState(null);
@@ -1472,7 +1381,7 @@
             const { latitude, longitude } = position.coords;
             // IMPORTANT: Replace YOUR_AMAP_KEY with your actual Amap Web Service Key if using Amap
             // For now, this part will likely fail or use default due to missing key.
-            const geocodeUrl = `https://restapi.amap.com/v3/geocode/regeo?location=${longitude},${latitude}&key=YOUR_AMAP_KEY&radius=1000&extensions=base`;
+            const geocodeUrl = `https://restapi.amap.com/v3/geocode/regeo?location=${longitude},${latitude}&key=YOUR_AMAP_KEY_HERE&radius=1000&extensions=base`;
             
             try { 
                 const response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(geocodeUrl)}`);
@@ -1484,7 +1393,7 @@
                     if (CITY_CODES[cityName]) return CITY_CODES[cityName];
                 }
             } catch (geoErr) {
-                console.warn('Geocoding failed (likely missing API key or network issue), using default city:', geoErr.message);
+                console.warn('Geocoding failed (check API key or network), using default city:', geoErr.message);
             }
             return '101100101'; 
           } catch (err) {
@@ -1495,7 +1404,7 @@
 
         const fetchWeather = async (customCityId = null) => {
           try {
-            if (!loading) setIsUpdating(true); else setLoading(true); // Ensure loading is true if it's the first fetch
+            if (!loading) setIsUpdating(true); else setLoading(true);
             setError(null);
             const targetCityId = customCityId || cityId;
             const apiUrl = `http://t.weather.sojson.com/api/weather/city/${targetCityId}`;
@@ -1513,7 +1422,7 @@
             setWeather(data);
           } catch (err) {
             setError(err.message || 'Failed to fetch weather');
-            setWeather(null); // Clear previous weather data on error
+            setWeather(null);
           } finally {
             setLoading(false);
             setIsUpdating(false);
@@ -1563,7 +1472,7 @@
               React.createElement('div', { className: 'error-message' }, error || '无法获取天气数据'),
               React.createElement('button', {
                 className: 'retry-btn',
-                onClick: () => { fetchWeather(cityId); } // Retry with current cityId
+                onClick: () => { fetchWeather(cityId); } 
               }, '重试')
             )
           );
@@ -1573,7 +1482,8 @@
         const tomorrow = weather.data.forecast[1];
 
         return React.createElement('div', { className: 'weather-widget' },
-          React.createElement(WeatherAnimation, { weatherType: today.type }),
+          // Ensure weatherType is passed only when valid
+          today && today.type ? React.createElement(WeatherAnimation, { weatherType: today.type }) : null,
           React.createElement('div', { 
             className: `weather-content ${isUpdating ? 'updating' : ''}` 
           },
@@ -1636,7 +1546,7 @@
             React.createElement('div', { className: 'weather-controls' },
               React.createElement('button', {
                 className: 'refresh-btn',
-                onClick: () => fetchWeather(cityId), // Refresh with current cityId
+                onClick: () => fetchWeather(cityId), 
                 disabled: isUpdating
               },
                 React.createElement(RefreshIcon),
@@ -1647,8 +1557,7 @@
         );
       };
 
-      // 每日一句组件
-      const DailyQuote = () => {
+      const DailyQuote = () => { /* ... same as before ... */ 
         const [quote, setQuote] = useState(null);
         const [loading, setLoading] = useState(true);
         const [error, setError] = useState(null);
@@ -1771,6 +1680,7 @@
         );
       };
 
+
       const triggersRoot = ReactDOM.createRoot(document.getElementById('sidebarTriggers'));
       triggersRoot.render(React.createElement(SidebarManager));
       const weatherRoot = ReactDOM.createRoot(document.getElementById('weatherRoot'));
@@ -1782,7 +1692,7 @@
     <script>
       document.getElementById('current-year').textContent = new Date().getFullYear();
       const runningDaysElement = document.getElementById('running-days');
-      const startDate = new Date(runningDaysElement.className); // className holds the date string
+      const startDate = new Date(runningDaysElement.className); 
       const daysDiff = Math.floor((new Date() - startDate) / (1000 * 60 * 60 * 24));
       runningDaysElement.textContent = `本站已运行 ${daysDiff} 天`;
 
