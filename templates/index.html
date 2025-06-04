@@ -273,7 +273,7 @@
         const [loading, setLoading] = useState(true);
         const [error, setError] = useState(null);
         const [isUpdating, setIsUpdating] = useState(false);
-        const [cityId, setCityId] = useState('101010100'); // Default Taiyuan
+        const [cityId, setCityId] = useState('101010100'); // Default
 
         const getCityIdFromLocation = async () => { 
           try {
@@ -296,10 +296,10 @@
             } catch (geoErr) {
                 console.warn('Geocoding failed, using default city:', geoErr.message);
             }
-            return '101100101'; 
+            return '101010100'; 
           } catch (err) {
             console.warn('Geolocation failed, using default city:', err.message);
-            return '101100101'; 
+            return '101010100'; 
           }
         };
         const fetchWeather = async (customCityId = null) => {
