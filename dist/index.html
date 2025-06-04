@@ -40,9 +40,6 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Matter.js - Removed as we are using CSS animations now -->
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script> -->
-
     <script src="/assets/dist/main.iife.js"></script>
     
     <style>
@@ -70,28 +67,27 @@
       .weather-widget:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.04), 0 8px 20px rgba(0,0,0,0.03); }
 
       .weather-animation-area {
-        height: 160px; /* Or desired height */
+        height: 160px; 
         position: relative;
         overflow: hidden;
-        /* Default background, can be overridden by specific weather type */
-        background: linear-gradient(to bottom, #87CEEB 0%, #ADD8E6 100%); /* Sky Blue */
+        background: linear-gradient(to bottom, #87CEEB 0%, #ADD8E6 100%); 
         border-top-left-radius: 15px; 
         border-top-right-radius: 15px;
         transition: background 0.5s ease-in-out;
       }
       .weather-animation-area.dark-mode {
-        background: linear-gradient(to bottom, #2c3e50, #465563); /* Darker sky */
+        background: linear-gradient(to bottom, #2c3e50, #465563);
       }
       .weather-animation-area.weather-sunny {
-        background: linear-gradient(to bottom, #FFD700 0%, #FFA500 100%); /* Sunny Orange/Yellow */
+        background: linear-gradient(to bottom, #FFD700 0%, #FFA500 100%);
       }
        .weather-animation-area.weather-cloudy,
        .weather-animation-area.weather-overcast {
-        background: linear-gradient(to bottom, #d3d3d3 0%, #b0c4de 100%); /* Light Grey to Light Steel Blue */
+        background: linear-gradient(to bottom, #d3d3d3 0%, #b0c4de 100%); 
       }
       .weather-animation-area.weather-rainy,
       .weather-animation-area.weather-snowy {
-        background: linear-gradient(to bottom, #778899 0%, #B0C4DE 100%); /* Slate Grey to Light Steel Blue */
+        background: linear-gradient(to bottom, #778899 0%, #B0C4DE 100%); 
       }
       .dark-mode.weather-animation-area.weather-sunny {
         background: linear-gradient(to bottom, #cc9900, #b37700);
@@ -105,30 +101,36 @@
         background: linear-gradient(to bottom, #3c4a5c, #2c3e50);
       }
 
-
       .weather-content { padding: 24px; position: relative; z-index: 2; }
       
-      /* --- Enhanced CSS Weather Animations --- */
+      /* --- Enhanced CSS Weather Animations (UPDATED) --- */
       .sun-element {
         width: 70px; height: 70px;
         background: radial-gradient(circle, #FFFDE7 20%, #FFECB3 50%, #FFD54F 100%);
         border-radius: 50%; position: absolute;
         top: 25px; left: 50%;
         transform: translateX(-50%);
-        box-shadow: 0 0 30px rgba(255, 215, 0, 0.7), 0 0 50px rgba(255, 223, 0, 0.5);
-        animation: sunPulse 4s infinite ease-in-out, sunGlow 4s infinite ease-in-out alternate;
+        box-shadow: 0 0 25px rgba(255, 215, 0, 0.6), 0 0 40px rgba(255, 223, 0, 0.4);
+        animation: sunPulse 5s infinite ease-in-out, sunGlow 5s infinite ease-in-out alternate;
       }
-      @keyframes sunPulse { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.08); } }
-      @keyframes sunGlow { 0%, 100% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.7), 0 0 50px rgba(255, 223, 0, 0.5); } 50% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.9), 0 0 60px rgba(255, 223, 0, 0.7); } }
+      @keyframes sunPulse { 
+        0%, 100% { transform: translateX(-50%) scale(1); } 
+        50% { transform: translateX(-50%) scale(1.05); } 
+      }
+      @keyframes sunGlow { 
+        0%, 100% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.6), 0 0 40px rgba(255, 223, 0, 0.4); } 
+        50% { box-shadow: 0 0 35px rgba(255, 215, 0, 0.8), 0 0 50px rgba(255, 223, 0, 0.6); } 
+      }
 
       .cloud-element {
         width: 90px; height: 55px;
         background: white;
-        border-radius: 40px; /* More pill-like */
+        border-radius: 40px; 
         position: absolute;
         animation: cloudDrift 20s infinite linear alternate;
-        opacity: 0.85;
+        opacity: var(--cloud-opacity, 0.85);
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        will-change: transform, opacity;
       }
       .cloud-element::before, .cloud-element::after {
         content: ''; position: absolute; background: white; border-radius: 50%;
@@ -136,47 +138,63 @@
       .cloud-element::before { width: 55px; height: 55px; top: -28px; left: 15px; }
       .cloud-element::after { width: 65px; height: 65px; top: -25px; right: 10px; }
       
-      .cloud-element.c1 { top: 35px; left: 15%; animation-duration: 28s; transform: scale(1); --cloud-drift-x: 30px; }
-      .cloud-element.c2 { top: 55px; left: 65%; animation-duration: 22s; transform: scale(0.75); --cloud-drift-x: -25px; opacity: 0.75 }
-      .cloud-element.c3 { top: 20px; left: 40%; animation-duration: 32s; transform: scale(0.9); --cloud-drift-x: 20px; opacity: 0.8; }
+      .cloud-element.c1 { top: 35px; left: 15%; animation-duration: 28s; --cloud-drift-x: 30px; }
+      .cloud-element.c2 { top: 55px; left: 65%; animation-duration: 22s; --cloud-drift-x: -25px; }
+      .cloud-element.c3 { top: 20px; left: 40%; animation-duration: 32s; --cloud-drift-x: 20px; }
       
       @keyframes cloudDrift {
-        from { transform: translateX(calc(var(--cloud-drift-x) * -0.5)) translateY(calc(var(--cloud-drift-x) * 0.1)) scale(var(--cloud-base-scale, 1)); }
-        to   { transform: translateX(calc(var(--cloud-drift-x) * 0.5)) translateY(calc(var(--cloud-drift-x) * -0.1)) scale(var(--cloud-base-scale, 1)); }
+        from { 
+          transform: translateX(calc(var(--cloud-drift-x) * -0.5)) translateY(var(--cloud-drift-y-from, 0px)) scale(var(--cloud-base-scale, 1));
+        }
+        to   { 
+          transform: translateX(calc(var(--cloud-drift-x) * 0.5)) translateY(var(--cloud-drift-y-to, 5px)) scale(var(--cloud-base-scale, 1));
+        }
       }
 
       .rain-drop-element {
         position: absolute;
-        width: 2px;
-        height: 20px;
-        background: linear-gradient(to bottom, rgba(173,216,230,0.1), rgba(173,216,230,0.8));
-        border-radius: 0 0 2px 2px;
+        width: 1.5px; /* Thinner drops */
+        height: var(--rain-drop-height, 20px);
+        background: linear-gradient(to bottom, rgba(173,216,230,0.1), rgba(173,216,230,0.7));
+        border-radius: 0 0 50% 50% / 0 0 10px 10px; /* More teardrop like */
         animation: rainFall linear infinite;
         transform-origin: top center;
+        will-change: transform, opacity;
       }
       @keyframes rainFall {
-        0% { transform: translateY(-20px) scaleY(0.8); opacity: 0; }
-        10% { opacity: 1; }
-        90% { opacity: 1; }
-        100% { transform: translateY(170px) scaleY(1); opacity: 0; }
+        0% { transform: translateY(-30px) scaleY(0.7) skewX(var(--rain-skew, -5deg)); opacity: 0; }
+        5% { opacity: 1; }
+        90% { opacity: 0.8; } /* Fade slightly before disappearing */
+        100% { transform: translateY(180px) scaleY(1) skewX(var(--rain-skew, -5deg)); opacity: 0; }
       }
 
       .snow-flake-element {
         position: absolute;
-        width: 7px; height: 7px;
-        background-image: radial-gradient(circle, white 40%, transparent 70%);
+        width: var(--flake-size, 7px); 
+        height: var(--flake-size, 7px);
+        background-image: radial-gradient(circle, rgba(255,255,255,0.85) 30%, transparent 65%); /* Softer */
         border-radius: 50%;
-        opacity: 0.9;
-        animation: snowFallAnim linear infinite;
+        opacity: var(--flake-opacity, 0.9);
+        animation: snowFallAnim ease-in-out infinite;
+        will-change: transform, opacity;
       }
       @keyframes snowFallAnim {
-        0% { transform: translateY(-15px) translateX(0px) rotate(0deg); opacity: 0.8; }
-        100% { transform: translateY(175px) translateX(var(--sway-x)) rotate(var(--sway-rotate)); opacity: 0; }
+        0% { 
+          transform: translateY(-20px) translateX(0px) rotate(0deg) scale(1);
+          opacity: 0; 
+        }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { 
+          transform: translateY(180px) translateX(var(--sway-x)) rotate(var(--sway-rotate)) scale(0.8); /* Shrink slightly at end */
+          opacity: 0; 
+        }
       }
       
       .dark-mode .cloud-element { background: #b0bec5; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
       .dark-mode .cloud-element::before, .dark-mode .cloud-element::after { background: #b0bec5; }
-      .dark-mode .rain-drop-element { background: linear-gradient(to bottom, rgba(176,190,197,0.1), rgba(176,190,197,0.7));}
+      .dark-mode .rain-drop-element { background: linear-gradient(to bottom, rgba(176,190,197,0.1), rgba(176,190,197,0.6));}
+      .dark-mode .snow-flake-element { background-image: radial-gradient(circle, rgba(220,220,230,0.8) 30%, transparent 65%); }
 
 
       /* Quote Card Styles (Keep as is) */
@@ -361,7 +379,7 @@
       const ChevronRightIcon = () => (React.createElement('svg',{className:"icon",viewBox:"0 0 24 24"},React.createElement('path',{d:"M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"})));
       const RefreshIcon = () => (React.createElement('svg',{className:"icon",viewBox:"0 0 24 24"},React.createElement('path',{d:"M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"})));
 
-      const SidebarManager = () => { /* ... Same as before ... */ 
+      const SidebarManager = () => { 
         const [weatherOpen, setWeatherOpen] = useState(false);
         const [quoteOpen, setQuoteOpen] = useState(false);
         const toggleWeather = () => { setWeatherOpen(!weatherOpen); if (quoteOpen) setQuoteOpen(false); };
@@ -399,7 +417,7 @@
         );
       };
 
-      // Pure CSS Weather Animation Component
+      // Pure CSS Weather Animation Component (UPDATED)
       const CSSWeatherAnimation = ({ weatherType }) => {
         const animationAreaRef = useRef(null);
 
@@ -407,12 +425,11 @@
           const area = animationAreaRef.current;
           if (!area) return;
 
-          area.innerHTML = ''; // Clear previous elements
+          area.innerHTML = ''; 
 
           const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
           let baseClass = 'weather-animation-area';
           if (isDark) baseClass += ' dark-mode';
-
           let weatherSpecificClass = '';
 
           if (weatherType === '晴') {
@@ -425,91 +442,98 @@
             if (weatherType === '多云') {
               const sun = document.createElement('div');
               sun.className = 'sun-element';
-              sun.style.opacity = '0.5'; // Partially obscured sun
+              sun.style.opacity = '0.4'; 
               sun.style.top = '35px';
+              sun.style.transform = 'translateX(-50%) scale(0.9)';
               area.appendChild(sun);
             }
-            for (let i = 0; i < (weatherType === '阴' ? 4 : 3); i++) {
+            const numClouds = weatherType === '阴' ? 5 : 3; // More clouds for overcast
+            for (let i = 0; i < numClouds; i++) {
               const cloud = document.createElement('div');
-              cloud.className = `cloud-element c${i+1}`;
-              cloud.style.setProperty('--cloud-base-scale', `${0.7 + Math.random() * 0.5}`);
+              cloud.className = `cloud-element c${(i % 3) + 1}`;
+              cloud.style.setProperty('--cloud-base-scale', `${0.6 + Math.random() * 0.6}`);
+              cloud.style.setProperty('--cloud-opacity', `${0.7 + Math.random() * 0.3}`);
+              cloud.style.setProperty('--cloud-drift-y-from', `${(Math.random() - 0.5) * 6}px`);
+              cloud.style.setProperty('--cloud-drift-y-to', `${(Math.random() - 0.5) * 12}px`);
+              cloud.style.animationDelay = `${Math.random() * 2}s`;
               area.appendChild(cloud);
             }
           } else if (weatherType.includes('雨')) {
             weatherSpecificClass = 'weather-rainy';
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 3; i++) { // Background clouds for rain
                 const cloud = document.createElement('div');
-                cloud.className = `cloud-element c${i+1}`;
-                cloud.style.opacity = '0.7';
-                cloud.style.setProperty('--cloud-base-scale', `${0.6 + Math.random() * 0.3}`);
-                cloud.style.animationDuration = `${25 + Math.random() * 10}s`;
+                cloud.className = `cloud-element c${(i % 3) + 1}`;
+                cloud.style.opacity = '0.6';
+                cloud.style.setProperty('--cloud-base-scale', `${0.7 + Math.random() * 0.3}`);
+                cloud.style.animationDuration = `${28 + Math.random() * 10}s`;
+                cloud.style.setProperty('--cloud-drift-y-from', `${(Math.random() - 0.5) * 4}px`);
+                cloud.style.setProperty('--cloud-drift-y-to', `${(Math.random() - 0.5) * 8}px`);
                 area.appendChild(cloud);
             }
-            const intensity = weatherType.includes('大') ? 80 : weatherType.includes('中') ? 50 : 30;
+            const intensity = weatherType.includes('大') ? 100 : weatherType.includes('中') ? 60 : 40;
             for (let i = 0; i < intensity; i++) {
               const drop = document.createElement('div');
               drop.className = 'rain-drop-element';
               drop.style.left = `${Math.random() * 100}%`;
-              drop.style.animationDelay = `${Math.random() * 1.5}s`;
-              drop.style.animationDuration = `${0.6 + Math.random() * 0.4}s`;
-              drop.style.transform = `scale(${0.8 + Math.random() * 0.4})`; // Vary drop size/length
+              drop.style.animationDelay = `${Math.random() * 1.8}s`;
+              drop.style.animationDuration = `${0.5 + Math.random() * 0.4}s`;
+              drop.style.setProperty('--rain-drop-height', `${10 + Math.random() * 15}px`);
+              drop.style.setProperty('--rain-skew', `${(Math.random() - 0.7) * 10 - 3}deg`); // Slight consistent slant + random variation
               area.appendChild(drop);
             }
           } else if (weatherType.includes('雪')) {
             weatherSpecificClass = 'weather-snowy';
-             for (let i = 0; i < 3; i++) {
+             for (let i = 0; i < 2; i++) { // Fewer, more subdued clouds for snow
                 const cloud = document.createElement('div');
-                cloud.className = `cloud-element c${i+1}`;
-                cloud.style.opacity = '0.6';
-                cloud.style.setProperty('--cloud-base-scale', `${0.5 + Math.random() * 0.3}`);
-                cloud.style.animationDuration = `${30 + Math.random() * 10}s`;
+                cloud.className = `cloud-element c${(i % 3) + 1}`;
+                cloud.style.opacity = '0.5';
+                cloud.style.setProperty('--cloud-base-scale', `${0.6 + Math.random() * 0.3}`);
+                cloud.style.animationDuration = `${35 + Math.random() * 10}s`;
                 area.appendChild(cloud);
             }
-            const intensity = weatherType.includes('大') ? 70 : (weatherType.includes('中') || weatherType === '雪') ? 45 : 25;
+            const intensity = weatherType.includes('大') ? 80 : (weatherType.includes('中') || weatherType === '雪') ? 50 : 30;
             for (let i = 0; i < intensity; i++) {
               const flake = document.createElement('div');
               flake.className = 'snow-flake-element';
               flake.style.left = `${Math.random() * 100}%`;
-              flake.style.animationDelay = `${Math.random() * 6}s`;
-              flake.style.animationDuration = `${4 + Math.random() * 4}s`;
-              flake.style.setProperty('--sway-x', `${(Math.random() - 0.5) * 80}px`);
+              flake.style.animationDelay = `${Math.random() * 7}s`; // Longer delay spread
+              flake.style.animationDuration = `${5 + Math.random() * 5}s`; // Slower, floatier
+              flake.style.setProperty('--sway-x', `${(Math.random() - 0.5) * 100}px`); // Wider sway
               flake.style.setProperty('--sway-rotate', `${(Math.random() - 0.5) * 720}deg`);
-              flake.style.transform = `scale(${0.7 + Math.random() * 0.6})`;
+              flake.style.setProperty('--flake-size', `${5 + Math.random() * 5}px`);
+              flake.style.setProperty('--flake-opacity', `${0.6 + Math.random() * 0.4}`);
               area.appendChild(flake);
             }
           }
-          // Add '雾' (Fog) and other specific types
           else if (weatherType === '雾') {
-            weatherSpecificClass = 'weather-cloudy'; // Similar background to cloudy/overcast
-             for (let i = 0; i < 5; i++) { // More, lower clouds for fog
+            weatherSpecificClass = 'weather-cloudy'; // Base background
+             for (let i = 0; i < 6; i++) { 
                 const cloud = document.createElement('div');
-                cloud.className = `cloud-element c${(i%3)+1}`; // Cycle through cloud styles
-                cloud.style.opacity = `${0.3 + Math.random() * 0.3}`;
-                cloud.style.top = `${60 + Math.random() * 30}%`; // Lower position
-                cloud.style.setProperty('--cloud-base-scale', `${0.8 + Math.random() * 0.6}`);
-                cloud.style.animationDuration = `${30 + Math.random() * 15}s`;
-                cloud.style.setProperty('--cloud-drift-x', `${(Math.random() -0.5) * 10}px`); // Less drift
+                cloud.className = `cloud-element c${(i%3)+1}`;
+                cloud.style.setProperty('--cloud-opacity', `${0.15 + Math.random() * 0.25}`); // More translucent
+                cloud.style.top = `${50 + Math.random() * 40}%`; 
+                cloud.style.setProperty('--cloud-base-scale', `${1.0 + Math.random() * 1.0}`); // Larger, more varied
+                cloud.style.animationDuration = `${45 + Math.random() * 25}s`; // Slower
+                cloud.style.setProperty('--cloud-drift-x', `${(Math.random() -0.5) * 15}px`); 
+                cloud.style.setProperty('--cloud-drift-y-from', `${(Math.random() - 0.5) * 3}px`);
+                cloud.style.setProperty('--cloud-drift-y-to', `${(Math.random() - 0.5) * 6}px`);
                 area.appendChild(cloud);
             }
           }
-
-
           area.className = `${baseClass} ${weatherSpecificClass}`;
-
         }, [weatherType]);
 
         return React.createElement('div', { ref: animationAreaRef });
       };
 
-
       const CITY_CODES = {'北京':'101010100','上海':'101020100','广州':'101280101','深圳':'101280601','杭州':'101210101','南京':'101190101','武汉':'101200101','成都':'101270101','西安':'101110101','太原':'101100101','天津':'101030100','重庆':'101040100','沈阳':'101070101','长春':'101060101','哈尔滨':'101050101','济南':'101120101','青岛':'101120201','郑州':'101180101','石家庄':'101090101','合肥':'101220101','福州':'101230101','厦门':'101230201','南昌':'101240101','长沙':'101250101','昆明':'101290101','贵阳':'101260101','兰州':'101160101','银川':'101170101','西宁':'101150101','乌鲁木齐':'101130101','拉萨':'101140101','呼和浩特':'101080101','南宁':'101300101','海口':'101310101','三亚':'101310201'};
 
-      const WeatherWidget = () => { /* ... Same as before, ensure YOUR_AMAP_KEY is handled ... */ 
+      const WeatherWidget = () => { 
         const [weather, setWeather] = useState(null);
         const [loading, setLoading] = useState(true);
         const [error, setError] = useState(null);
         const [isUpdating, setIsUpdating] = useState(false);
-        const [cityId, setCityId] = useState('101100101'); // Default Taiyuan
+        const [cityId, setCityId] = useState('101100101'); 
 
         const getCityIdFromLocation = async () => { 
           try {
@@ -518,6 +542,7 @@
               navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000, enableHighAccuracy: false });
             });
             const { latitude, longitude } = position.coords;
+            // IMPORTANT: Replace YOUR_AMAP_KEY_HERE with your actual Amap Web Service API Key
             const geocodeUrl = `https://restapi.amap.com/v3/geocode/regeo?location=${longitude},${latitude}&key=YOUR_AMAP_KEY_HERE&radius=1000&extensions=base`;
             
             try { 
@@ -643,7 +668,7 @@
         );
       };
 
-      const DailyQuote = () => { /* ... Same as before ... */ 
+      const DailyQuote = () => { 
         const [quote, setQuote] = useState(null);
         const [loading, setLoading] = useState(true);
         const [error, setError] = useState(null);
