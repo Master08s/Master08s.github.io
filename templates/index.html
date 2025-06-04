@@ -235,23 +235,254 @@
         visibility: visible;
       }
       
-      /* 组件卡片样式 */
-      .widget-card {
+      /* 天气组件样式 */
+      .weather-widget {
         background: #ffffff;
         border: 1px solid rgba(0, 0, 0, 0.04);
         border-radius: 16px;
-        padding: 24px;
+        padding: 0;
         box-shadow: 
           0 1px 3px rgba(0, 0, 0, 0.02),
           0 4px 12px rgba(0, 0, 0, 0.02);
         margin-bottom: 20px;
         transition: all 0.3s ease;
+        overflow: hidden;
+        position: relative;
       }
       
-      .widget-card:hover {
+      .weather-widget:hover {
         box-shadow: 
           0 4px 8px rgba(0, 0, 0, 0.04),
           0 8px 20px rgba(0, 0, 0, 0.03);
+      }
+      
+      /* 天气动画背景容器 */
+      .weather-animation-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        overflow: hidden;
+        z-index: 1;
+      }
+      
+      /* 天气内容层 */
+      .weather-content {
+        position: relative;
+        z-index: 2;
+        padding: 24px;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+      }
+      
+      /* 晴天动画 */
+      .sunny-bg {
+        background: linear-gradient(135deg, #87CEEB 0%, #98D8E8 50%, #F0E68C 100%);
+      }
+      
+      .sun {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        background: radial-gradient(circle, #FFD700 0%, #FFA500 70%);
+        border-radius: 50%;
+        animation: sunRotate 20s linear infinite;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+      }
+      
+      .sun::before {
+        content: '';
+        position: absolute;
+        top: -10px;
+        left: -10px;
+        right: -10px;
+        bottom: -10px;
+        background: radial-gradient(circle, transparent 60%, rgba(255, 215, 0, 0.1) 70%);
+        border-radius: 50%;
+        animation: sunGlow 3s ease-in-out infinite alternate;
+      }
+      
+      @keyframes sunRotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      
+      @keyframes sunGlow {
+        from { opacity: 0.5; }
+        to { opacity: 1; }
+      }
+      
+      /* 多云动画 */
+      .cloudy-bg {
+        background: linear-gradient(135deg, #B0C4DE 0%, #D3D3D3 50%, #F5F5F5 100%);
+      }
+      
+      .cloud {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 50px;
+        opacity: 0.8;
+      }
+      
+      .cloud::before,
+      .cloud::after {
+        content: '';
+        position: absolute;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 50px;
+      }
+      
+      .cloud1 {
+        width: 80px;
+        height: 30px;
+        top: 20px;
+        left: 20px;
+        animation: cloudFloat1 15s ease-in-out infinite;
+      }
+      
+      .cloud1::before {
+        width: 40px;
+        height: 40px;
+        top: -20px;
+        left: 10px;
+      }
+      
+      .cloud1::after {
+        width: 60px;
+        height: 35px;
+        top: -15px;
+        right: 10px;
+      }
+      
+      .cloud2 {
+        width: 60px;
+        height: 25px;
+        top: 60px;
+        right: 30px;
+        animation: cloudFloat2 12s ease-in-out infinite reverse;
+      }
+      
+      .cloud2::before {
+        width: 35px;
+        height: 35px;
+        top: -18px;
+        left: 8px;
+      }
+      
+      .cloud2::after {
+        width: 45px;
+        height: 30px;
+        top: -12px;
+        right: 8px;
+      }
+      
+      @keyframes cloudFloat1 {
+        0%, 100% { transform: translateX(0px); }
+        50% { transform: translateX(20px); }
+      }
+      
+      @keyframes cloudFloat2 {
+        0%, 100% { transform: translateX(0px); }
+        50% { transform: translateX(-15px); }
+      }
+      
+      /* 雨天动画 */
+      .rainy-bg {
+        background: linear-gradient(135deg, #4682B4 0%, #708090 50%, #2F4F4F 100%);
+      }
+      
+      .rain-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        overflow: hidden;
+      }
+      
+      .raindrop {
+        position: absolute;
+        width: 2px;
+        background: linear-gradient(to bottom, transparent, rgba(173, 216, 230, 0.8), transparent);
+        animation: rainFall linear infinite;
+      }
+      
+      @keyframes rainFall {
+        from {
+          transform: translateY(-100px);
+          opacity: 1;
+        }
+        to {
+          transform: translateY(300px);
+          opacity: 0;
+        }
+      }
+      
+      /* 雪天动画 */
+      .snowy-bg {
+        background: linear-gradient(135deg, #E6E6FA 0%, #F0F8FF 50%, #FFFAFA 100%);
+      }
+      
+      .snow-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        overflow: hidden;
+      }
+      
+      .snowflake {
+        position: absolute;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 14px;
+        animation: snowFall linear infinite;
+      }
+      
+      @keyframes snowFall {
+        from {
+          transform: translateY(-100px) rotate(0deg);
+          opacity: 1;
+        }
+        to {
+          transform: translateY(300px) rotate(360deg);
+          opacity: 0;
+        }
+      }
+      
+      /* 阴天动画 */
+      .overcast-bg {
+        background: linear-gradient(135deg, #696969 0%, #A9A9A9 50%, #D3D3D3 100%);
+      }
+      
+      /* 雾天动画 */
+      .foggy-bg {
+        background: linear-gradient(135deg, #F5F5F5 0%, #DCDCDC 50%, #C0C0C0 100%);
+      }
+      
+      .fog {
+        position: absolute;
+        width: 100%;
+        height: 40px;
+        background: linear-gradient(90deg, 
+          transparent 0%, 
+          rgba(255, 255, 255, 0.3) 25%, 
+          rgba(255, 255, 255, 0.5) 50%, 
+          rgba(255, 255, 255, 0.3) 75%, 
+          transparent 100%);
+        animation: fogMove 8s ease-in-out infinite;
+      }
+      
+      .fog:nth-child(1) { top: 20px; animation-delay: 0s; }
+      .fog:nth-child(2) { top: 60px; animation-delay: 2s; }
+      .fog:nth-child(3) { top: 100px; animation-delay: 4s; }
+      
+      @keyframes fogMove {
+        0%, 100% { transform: translateX(-50px); opacity: 0.3; }
+        50% { transform: translateX(50px); opacity: 0.7; }
       }
       
       /* 每日一句卡片样式 */
@@ -378,7 +609,7 @@
         color: rgba(255, 255, 255, 0.85);
       }
       
-      /* 天气组件样式 */
+      /* 天气主要信息 */
       .weather-main {
         display: flex;
         align-items: center;
@@ -445,10 +676,11 @@
       }
       
       .weather-detail-item {
-        background: #f8fafc;
+        background: rgba(248, 250, 252, 0.8);
         padding: 8px 12px;
         border-radius: 8px;
         text-align: center;
+        backdrop-filter: blur(5px);
       }
       
       .weather-detail-label {
@@ -464,7 +696,7 @@
       }
       
       .weather-forecast {
-        border-top: 1px solid #f1f5f9;
+        border-top: 1px solid rgba(241, 245, 249, 0.8);
         padding-top: 16px;
       }
       
@@ -500,7 +732,7 @@
         font-weight: 500;
       }
       
-      /* 控制按钮 - 现代简约风格 */
+      /* 控制按钮 */
       .quote-controls, .weather-controls {
         display: flex;
         justify-content: space-between;
@@ -513,8 +745,8 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        background: #f1f5f9;
-        border: 1px solid #e2e8f0;
+        background: rgba(241, 245, 249, 0.8);
+        border: 1px solid rgba(226, 232, 240, 0.8);
         padding: 8px 12px;
         border-radius: 8px;
         cursor: pointer;
@@ -522,11 +754,12 @@
         font-weight: 500;
         color: #475569;
         transition: all 0.2s ease;
+        backdrop-filter: blur(5px);
       }
       
       .audio-btn:hover, .refresh-btn:hover {
-        background: #e2e8f0;
-        border-color: #cbd5e1;
+        background: rgba(226, 232, 240, 0.8);
+        border-color: rgba(203, 213, 225, 0.8);
         color: #334155;
         transform: translateY(-1px);
       }
@@ -550,8 +783,8 @@
       .nav-btn {
         width: 30px;
         height: 30px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
+        background: rgba(248, 250, 252, 0.8);
+        border: 1px solid rgba(226, 232, 240, 0.8);
         border-radius: 8px;
         display: flex;
         align-items: center;
@@ -559,11 +792,12 @@
         cursor: pointer;
         transition: all 0.2s ease;
         color: #64748b;
+        backdrop-filter: blur(5px);
       }
       
       .nav-btn:hover {
-        background: #f1f5f9;
-        border-color: #cbd5e1;
+        background: rgba(241, 245, 249, 0.8);
+        border-color: rgba(203, 213, 225, 0.8);
         color: #475569;
         transform: translateY(-1px);
       }
@@ -689,10 +923,14 @@
           color: #e2e8f0;
         }
         
-        .widget-card:not(.with-image), .quote-card:not(.with-image) {
+        .weather-widget, .quote-card:not(.with-image) {
           background: #1e293b;
           border-color: rgba(255, 255, 255, 0.05);
           color: #f8fafc;
+        }
+        
+        .weather-content {
+          background: rgba(30, 41, 59, 0.9);
         }
         
         .quote-card:not(.with-image) .quote-text {
@@ -712,29 +950,29 @@
         }
         
         .weather-detail-item {
-          background: #334155;
+          background: rgba(51, 65, 85, 0.8);
         }
         
         .audio-btn, .refresh-btn {
-          background: #334155;
-          border-color: #475569;
+          background: rgba(51, 65, 85, 0.8);
+          border-color: rgba(71, 85, 105, 0.8);
           color: #cbd5e1;
         }
         
         .audio-btn:hover, .refresh-btn:hover {
-          background: #475569;
+          background: rgba(71, 85, 105, 0.8);
           color: #f1f5f9;
         }
         
         .nav-btn {
-          background: #334155;
-          border-color: #475569;
+          background: rgba(51, 65, 85, 0.8);
+          border-color: rgba(71, 85, 105, 0.8);
           color: #cbd5e1;
         }
         
         .nav-btn:hover {
-          background: #475569;
-          border-color: #64748b;
+          background: rgba(71, 85, 105, 0.8);
+          border-color: rgba(100, 116, 139, 0.8);
           color: #f1f5f9;
         }
       }
@@ -750,6 +988,13 @@
         .sidebar-panel {
           width: 100vw;
           padding: 20px;
+        }
+      }
+      
+      /* 性能优化 - 减少动画复杂度 */
+      @media (prefers-reduced-motion: reduce) {
+        .sun, .cloud1, .cloud2, .raindrop, .snowflake, .fog {
+          animation: none;
         }
       }
     </style>
@@ -967,6 +1212,120 @@
         );
       };
 
+      // 天气动画组件
+      const WeatherAnimation = ({ weatherType }) => {
+        const createRaindrops = () => {
+          const raindrops = [];
+          for (let i = 0; i < 50; i++) {
+            const delay = Math.random() * 2;
+            const duration = 1 + Math.random() * 0.5;
+            const left = Math.random() * 100;
+            const height = 20 + Math.random() * 30;
+            
+            raindrops.push(
+              React.createElement('div', {
+                key: i,
+                className: 'raindrop',
+                style: {
+                  left: `${left}%`,
+                  height: `${height}px`,
+                  animationDelay: `${delay}s`,
+                  animationDuration: `${duration}s`
+                }
+              })
+            );
+          }
+          return raindrops;
+        };
+
+        const createSnowflakes = () => {
+          const snowflakes = [];
+          const symbols = ['❄', '❅', '❆'];
+          
+          for (let i = 0; i < 30; i++) {
+            const delay = Math.random() * 3;
+            const duration = 3 + Math.random() * 2;
+            const left = Math.random() * 100;
+            const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+            
+            snowflakes.push(
+              React.createElement('div', {
+                key: i,
+                className: 'snowflake',
+                style: {
+                  left: `${left}%`,
+                  animationDelay: `${delay}s`,
+                  animationDuration: `${duration}s`
+                }
+              }, symbol)
+            );
+          }
+          return snowflakes;
+        };
+
+        const getAnimationContent = () => {
+          switch (weatherType) {
+            case '晴':
+              return [
+                React.createElement('div', { key: 'sun', className: 'sun' })
+              ];
+            
+            case '多云':
+              return [
+                React.createElement('div', { key: 'cloud1', className: 'cloud cloud1' }),
+                React.createElement('div', { key: 'cloud2', className: 'cloud cloud2' })
+              ];
+            
+            case '小雨':
+            case '中雨':
+            case '大雨':
+              return [
+                React.createElement('div', { key: 'rain', className: 'rain-container' }, createRaindrops())
+              ];
+            
+            case '雪':
+            case '小雪':
+            case '大雪':
+              return [
+                React.createElement('div', { key: 'snow', className: 'snow-container' }, createSnowflakes())
+              ];
+            
+            case '雾':
+              return [
+                React.createElement('div', { key: 'fog1', className: 'fog' }),
+                React.createElement('div', { key: 'fog2', className: 'fog' }),
+                React.createElement('div', { key: 'fog3', className: 'fog' })
+              ];
+            
+            default:
+              return [
+                React.createElement('div', { key: 'cloud1', className: 'cloud cloud1' }),
+                React.createElement('div', { key: 'cloud2', className: 'cloud cloud2' })
+              ];
+          }
+        };
+
+        const getBackgroundClass = () => {
+          switch (weatherType) {
+            case '晴': return 'sunny-bg';
+            case '多云': return 'cloudy-bg';
+            case '小雨':
+            case '中雨':
+            case '大雨': return 'rainy-bg';
+            case '雪':
+            case '小雪':
+            case '大雪': return 'snowy-bg';
+            case '阴': return 'overcast-bg';
+            case '雾': return 'foggy-bg';
+            default: return 'cloudy-bg';
+          }
+        };
+
+        return React.createElement('div', {
+          className: `weather-animation-bg ${getBackgroundClass()}`
+        }, ...getAnimationContent());
+      };
+
       // 城市代码映射
       const CITY_CODES = {
         '北京': '101010100',
@@ -1123,6 +1482,8 @@
             '中雨': '🌧️',
             '大雨': '⛈️',
             '雪': '❄️',
+            '小雪': '🌨️',
+            '大雪': '❄️',
             '雾': '🌫️'
           };
           return iconMap[type] || '🌤️';
@@ -1140,7 +1501,7 @@
         }, []);
 
         if (loading) {
-          return React.createElement('div', { className: 'widget-card' },
+          return React.createElement('div', { className: 'weather-widget' },
             React.createElement('div', { className: 'loading-card' },
               React.createElement('div', { className: 'loading-spinner' }),
               React.createElement('div', { className: 'loading-text' }, '获取天气中...')
@@ -1149,7 +1510,7 @@
         }
 
         if (error || !weather) {
-          return React.createElement('div', { className: 'widget-card' },
+          return React.createElement('div', { className: 'weather-widget' },
             React.createElement('div', { className: 'error-card' },
               React.createElement('div', { className: 'error-title' }, '天气获取失败'),
               React.createElement('div', { className: 'error-message' }, error || '无法获取天气数据'),
@@ -1164,7 +1525,8 @@
         const today = weather.data.forecast[0];
         const tomorrow = weather.data.forecast[1];
 
-        return React.createElement('div', { className: 'widget-card' },
+        return React.createElement('div', { className: 'weather-widget' },
+          React.createElement(WeatherAnimation, { weatherType: today.type }),
           React.createElement('div', { 
             className: `weather-content ${isUpdating ? 'updating' : ''}` 
           },
